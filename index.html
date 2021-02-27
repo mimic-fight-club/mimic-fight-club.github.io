@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <!-- Latest compiled and minified CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-BmbxuPwQa2lc/FVzBcNJ7UAyJxM6wuqIj61tLrc4wSX0szH/Ev+nYRRuWlolflfl" crossorigin="anonymous">
+    
+    <title>Gnome Fight Club</title>
+    <script src="https://unpkg.com/vue"></script>
+    
+    <style>
+        tbody tr:hover{
+            background-color: lightgray;
+        }
+        .row-filter{
+            display: inline-block;
+        }
+        .add-button{
+            padding-bottom: 4px;
+            padding-top: 4px;
+            padding-left: 7px;
+            padding-right: 7px;
+            display: inline-block;
+            font: bolder normal normal 16px/1 FontAwesome;
+        }
+        .remove-button{
+            padding-bottom: 5px;
+            padding-top: 3px;
+            padding-left: 9px;
+            padding-right: 9px;
+            margin-left: 2px;
+            margin-right: 2px;
+            display: inline-block;
+            font: bolder normal normal 16px/1 FontAwesome;
+        }
+        .status-button{
+            padding-bottom: 5px;
+            padding-top: 3px;
+            padding-left: 5px;
+            padding-right: 5px;
+            margin-left: 3px;
+            margin-right: 3px;
+            display: inline-block;
+            font: bolder normal normal 16px/1 FontAwesome;
+        }
+    </style>
+</head>
+<body>    
+    <div class="container-fluid">
+        <div id="app">
+            <div class="row pt-4">
+                <div class="col-lg-4">
+                    <div class="row">
+                        <div class="row-filter col-3">
+                            <label for="partySizeFilter" class="form-label">Party size</label>
+                            <select v-model='filters.partySizeFilter' class="form-select" id="partySizeFilter">
+                                <option v-for="size in partySize" :value="size">{{size}} Players</option>
+                            </select>
+                        </div>   
+                        <div class="row-filter col-3">
+                            <label for="partyLevelFilter" class="form-label">Party level</label>
+                            <select v-model='filters.partyLevelFilter' class="form-select" id="partyLevelFilter" v-on:click="setEncounterExp">
+                                <option v-for="level in partyLevel" :value="level">Level {{level}}</option>
+                            </select>
+                        </div>    
+                        <div class="col-6">
+                            <ul class="list-group-flush">
+                                <li v-for="difficulty in encounterDifficulties" class="d-flex justify-content-between align-items-center">
+                                    <div :style="difficulty.isActive ? difficultyStyle : ''">{{difficulty.displayName}}</div>
+                                    <div :style="difficulty.isActive ? difficultyStyle : ''">{{difficulty.exp}} XP</div>
+                                </li>
+                            </ul>
+                        </div>   
+                    </div>
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th scope="col">Count</th>
+                                <th scope="col">Name</th>
+                                <th scope="col">Level</th>
+                                <th class="col-1"></th>
+                                <th class="col-1"></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr v-for="creature in encounterCreatures">
+                                <td><button 
+                                    type="button" 
+                                    class="btn btn-success btn-sm add-button"
+                                    v-bind:value="creature.data.name"
+                                    v-on:click="addCreature">+</button>
+                                    <span style="padding-left:5px; padding-right:5px;">{{creature.amount}}</span>                                    
+                                    <button 
+                                    type="button" 
+                                    class="btn btn-secondary btn-sm remove-button"
+                                    v-bind:value="creature.data.name"
+                                    v-on:click="removeCreature">-</button><button 
+                                    type="button" 
+                                    class="btn btn-danger btn-sm remove-button"
+                                    v-bind:value="creature.data.name"
+                                    v-on:click="completelyRemoveCreature">x</button>
+                                </td>
+                                <td><a :href="creature.data.link">{{creature.data.name}}</a></td>
+                                <td>
+                                    {{creature.data.level}}
+                                    <span v-if="creature.isWeak"> ({{creature.data.level-1}})</span>
+                                    <span v-if="creature.isElite"> ({{creature.data.level+1}})</span>
+                                </td>
+                                <td><button type="button" :class="creature.isWeak ? 'btn btn-warning status-button' : 'btn btn-dark status-button'" v-on:click="switchWeak" v-bind:value="creature.data.name">W</button></td>
+                                <td><button type="button" :class="creature.isElite ? 'btn btn-danger status-button' : 'btn btn-dark status-button'" v-on:click="switchElite" v-bind:value="creature.data.name">E</button></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <div>
+                        <span>TOTAL XP: {{encounterExp}} XP <b v-if="activeEncounterDifficulty.displayName != ''">({{activeEncounterDifficulty.displayName}})</b></span>
+                    </div>
+                    <div v-if="addedCreatures.length > 0" class="row-filter mt-2">
+                        <button type="button" class="btn btn-primary mb-1" v-on:click="resetEncounter">Reset encounter</button>
+                    </div>   
+                </div>
+                <div class="col-lg-8">
+                    <div class="input-group mb-3">
+                        <div class="input-group-prepend col-1">
+                            <span class="input-group-text" id="basic-addon1">Search</span>
+                        </div>
+                        <div class="row-filter col-7">
+                            <input type="text" class="form-control" placeholder="Creature name" aria-label="Username" aria-describedby="basic-addon1" v-model='filters.nameFilter'>
+                        </div>       
+                    </div>                
+                    
+                    <div class="row-filter col-1">
+                        <label for="levelMinFilter" class="form-label">Level Min</label>
+                        <select v-model='filters.levelMinFilter' class="form-select" id="levelMinFilter">
+                            <option v-for="level in levels" :value="level">{{level}}</option>
+                        </select>
+                    </div>                        
+                    <div class="row-filter col-1">
+                        <label for="levelMaxFilter" class="form-label">Level Max</label>
+                        <select v-model='filters.levelMaxFilter' class="form-select" id="levelMaxFilter">
+                            <option v-for="level in levels" :value="level">{{level}}</option>
+                        </select>
+                    </div>
+                    <div class="row-filter col">
+                        <label for="familyFilter" class="form-label">Family</label>
+                        <select v-model='filters.familyFilter' class="form-select" id="familyFilter">
+                            <option v-for="family in families" :value="family.value">{{family.displayName}}</option>
+                        </select>
+                    </div>
+                    <div class="row-filter col">
+                        <label for="alignmentFilter" class="form-label">Alignment</label>
+                        <select v-model='filters.alignmentFilter' class="form-select" id="alignmentFilter">
+                            <option v-for="alignment in alignments" :value="alignment.value">{{alignment.displayName}}</option>
+                        </select>
+                    </div>                    
+                    <div class="row-filter col">
+                        <label for="typeFilter" class="form-label">Type</label>
+                        <select v-model='filters.typeFilter' class="form-select" id="typeFilter">
+                            <option v-for="type in types" :value="type.value">{{type.displayName}}</option>
+                        </select>
+                    </div>                    
+                    <div class="row-filter col">
+                        <label for="sizeFilter" class="form-label">Size</label>
+                        <select v-model='filters.sizeFilter' class="form-select" id="sizeFilter">
+                            <option v-for="size in sizes" :value="size.value">{{size.displayName}}</option>
+                        </select>
+                    </div>                      
+                    <div class="row-filter col">
+                        <button type="button" class="btn btn-primary mb-1" v-on:click="resetFilters">Reset filters</button>
+                    </div>   
+                    
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th scope="col">Add</th>
+                                <th scope="col">Name</th>
+                                <th scope="col">Family</th>
+                                <th scope="col">Level</th>
+                                <th scope="col">Alignment</th>
+                                <th scope="col">Type</th>
+                                <th scope="col">Size</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr v-for="creature in filteredCreatureList">
+                                <td><button 
+                                    type="button" 
+                                    class="btn btn-success btn-sm add-button"
+                                    v-bind:value="creature.name"
+                                    v-on:click="addCreature">+</button>
+                                </td>
+                                <td><a :href="creature.link">{{creature.name}}</a></td>
+                                <td>{{creature.family}}</td>
+                                <td>{{creature.level}}</td>
+                                <td>{{creature.alignment}}</td>
+                                <td>{{creature.type}}</td>
+                                <td>{{creature.size}}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+        </div>
+    </div>
+    <script src='./monsterTable2.js'></script>
+    <script>    
+        
+        function lowerCaseMatch(search, objectKey){
+            return (el) => {return el[objectKey].toLowerCase() === search.toLowerCase()};
+        };
+        
+        function sortString(){
+            return (a,b) => {
+                if(a.value > b.value){ return 1; }
+                if(a.value < b.value){ return -1; }
+                return 0;
+            }
+        }
+        
+        function setDifficultiesBasedOnNumberOfPlayers(partySize, difficulties){
+            difficulties[0].exp = 10*partySize;
+            difficulties[1].exp = 15*partySize;
+            difficulties[2].exp = 20*partySize;
+            difficulties[3].exp = 30*partySize;
+            difficulties[4].exp = 40*partySize;
+        }
+
+        function getCreatureLevel(creature){
+            if(creature.isWeak){
+                return creature.data.level -1;
+            }
+            if(creature.isElite){
+                return creature.data.level +1;
+            }
+            return creature.data.level;
+        }
+        
+        var getDefaultFilters = function(){
+            return {nameFilter: '', alignmentFilter: '', levelMinFilter: 'All', levelMaxFilter: 'All', familyFilter: '', typeFilter: '', sizeFilter: '', partySizeFilter: 4, partyLevelFilter: 1};
+        }       
+        var getDefaultEncounterDifficulties = function(){
+            return [
+            {displayName: "Trivial", exp: 40, isActive: false},
+            {displayName: "Low", exp: 60, isActive: false},
+            {displayName: "Moderate", exp: 80, isActive: false},
+            {displayName: "Severe", exp: 120, isActive: false},
+            {displayName: "Extreme", exp: 160, isActive: false}
+            ];
+        }
+        
+        var app = new Vue({
+            el: '#app',
+            data: {
+                creatureList: creatureList,
+                filters: getDefaultFilters(),
+                alignments: [{displayName:'All', value:''}],
+                families: [{displayName: 'All', value:''}],
+                types: [{displayName:'All', value:''}],
+                sizes: [{displayName:'All', value:''}],
+                levels: ['All'],
+                addedCreatures: [],
+                partySize: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+                partyLevel: [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20],
+                encounterExp: 0,
+                difficultyStyle: "font-weight: bold;"
+            },
+            computed: {
+                filteredCreatureList: function(){
+                    var defaultFilters = getDefaultFilters();
+                    var creatures = this.creatureList.filter((creature) => {
+                        if(this.filters.alignmentFilter != defaultFilters.alignmentFilter && creature.alignment.toLowerCase() !== this.filters.alignmentFilter.toLowerCase()){
+                            return false;
+                        };
+                        if(this.filters.familyFilter != defaultFilters.familyFilter && !creature.family.toLowerCase().includes(this.filters.familyFilter.toLowerCase())){
+                            return false;
+                        };
+                        if(this.filters.typeFilter != defaultFilters.typeFilter && !creature.type.toLowerCase().includes(this.filters.typeFilter.toLowerCase())){
+                            return false;
+                        };
+                        if(this.filters.sizeFilter != defaultFilters.sizeFilter && creature.size.toLowerCase() !== this.filters.sizeFilter.toLowerCase()){
+                            return false;
+                        };
+                        if(this.filters.levelMinFilter != defaultFilters.levelMinFilter && creature.level < this.filters.levelMinFilter){
+                            return false;
+                        }
+                        if(this.filters.levelMaxFilter != defaultFilters.levelMaxFilter && creature.level > this.filters.levelMaxFilter){
+                            return false;
+                        }
+                        return creature.name.toLowerCase().includes(this.filters.nameFilter.toLowerCase()) && creature.alignment.toLowerCase();
+                    });
+                    return creatures.sort((a,b) => {
+                        if(a.level > b.level) return 1;
+                        if(a.level < b.level) return -1;
+                        
+                        if(a.name > b.name) return 1;
+                        if(a.name < b.name) return -1;
+                        
+                        return 0;
+                    });
+                },
+                encounterCreatures: function(){
+                    return this.addedCreatures;
+                },
+                encounterDifficulties: function(){
+                    var difficulties = getDefaultEncounterDifficulties();
+                    var defaultFilters = getDefaultFilters();
+                    if(this.filters.partySizeFilter != defaultFilters.partySizeFilter){
+                        setDifficultiesBasedOnNumberOfPlayers(this.filters.partySizeFilter, difficulties);
+                    }
+                    
+                    var activeDifficulties = difficulties.filter(diff => {
+                        return this.encounterExp <= diff.exp;
+                    })
+                    var activeDifficulty = activeDifficulties[0] || difficulties[4];
+                    activeDifficulty.isActive = this.addedCreatures.length > 0;
+                    return difficulties;
+                },
+                activeEncounterDifficulty: function(){
+                    return this.encounterDifficulties.filter(diff => diff.isActive)[0] || {displayName: ""};
+                }
+            },
+            mounted: function(){
+                this.creatureList.forEach((creature) => {
+                    if(!this.alignments.find(lowerCaseMatch(creature.alignment, "value"))){                        
+                        this.alignments.push({displayName:creature.alignment, value:creature.alignment.toLowerCase()});
+                    }
+                });
+                this.alignments.sort(sortString());
+                
+                this.creatureList.forEach((creature) => {
+                    creature.family.split(', ').forEach((family) => {
+                        if(!this.families.find(lowerCaseMatch(family, "value"))){                        
+                            this.families.push({displayName:family, value:family.toLowerCase()});
+                        }
+                    });
+                    
+                });
+                this.families.sort(sortString());
+                
+                this.creatureList.forEach((creature) => {
+                    creature.type.split(', ').forEach((type) => {
+                        if(!this.types.find(lowerCaseMatch(type, "value"))){                        
+                            this.types.push({displayName:type, value:type.toLowerCase()});
+                        }
+                    });
+                    
+                });
+                this.types.sort(sortString());
+                
+                this.creatureList.forEach((creature) => {
+                    if(!this.sizes.find(lowerCaseMatch(creature.size, "value"))){                        
+                        this.sizes.push({displayName:creature.size, value:creature.size.toLowerCase()});
+                    }
+                });
+                this.sizes.sort(sortString());
+                
+                this.creatureList.forEach((creature) => {
+                    if(!this.levels.includes(creature.level)){                        
+                        this.levels.push(creature.level);
+                    }
+                });
+                this.levels.sort((a,b) => {
+                    return a-b;
+                });
+            },
+            methods:{
+                resetFilters: function(event){
+                    this.filters = getDefaultFilters();
+                },
+                resetEncounter: function(event){
+                    this.addedCreatures = [];
+                },
+                addCreature: function(event){
+                    var creatureName = event.target.attributes.value.value;
+                    var clickedCreature = this.creatureList.filter(creature => creature.name === creatureName);
+                    if(clickedCreature.length > 0){
+                        var addedCreature = (this.addedCreatures || []).filter(creature => creature.data.name === creatureName)[0];
+                        if(!addedCreature){
+                            addedCreature = {data:clickedCreature[0], amount:0, isElite:false, isWeak:false};
+                            this.addedCreatures.push(addedCreature);
+                        }
+                        addedCreature.amount++;
+                    }
+                    this.setEncounterExp();
+                },
+                removeCreature: function(event){
+                    var creatureName = event.target.attributes.value.value;
+                    var clickedCreature = this.addedCreatures.filter(creature => creature.data.name === creatureName)[0];
+                    if(clickedCreature){
+                        clickedCreature.amount--;
+                    }
+                    if(clickedCreature.amount <= 0){
+                        var index = this.addedCreatures.indexOf(clickedCreature);
+                        this.addedCreatures.splice(index, 1);
+                    }                    
+                    this.setEncounterExp();
+                },
+                completelyRemoveCreature: function(event){
+                    var creatureName = event.target.attributes.value.value;
+                    var clickedCreature = this.addedCreatures.filter(creature => creature.data.name === creatureName)[0];
+                    if(clickedCreature){
+                        clickedCreature.amount = 0;
+                    }
+                    if(clickedCreature.amount <= 0){
+                        var index = this.addedCreatures.indexOf(clickedCreature);
+                        this.addedCreatures.splice(index, 1);
+                    }                    
+                    this.setEncounterExp();
+                },
+                setEncounterExp: function(){
+                    this.encounterExp = 0;
+                    
+                    this.addedCreatures.forEach(creature => {
+                        this.adjustEncounterExpForCreatureLvl(getCreatureLevel(creature), creature.amount);
+                    });
+                },
+                adjustEncounterExpForCreatureLvl: function(creatureLevel, multiplier){
+                    var levelDiff = creatureLevel - this.filters.partyLevelFilter;
+                    var expValue = 0;
+                    switch(levelDiff){
+                        case -4: expValue = 10; break;
+                        case -3: expValue = 15; break;
+                        case -2: expValue = 20; break;
+                        case -1: expValue = 30; break;
+                        case 0: expValue = 40; break;
+                        case 1: expValue = 60; break;
+                        case 2: expValue = 80; break;
+                        case 3: expValue = 120; break;
+                        case 4: expValue = 160; break;
+                    }
+                    if(levelDiff > 4){
+                        expValue = 300;
+                    }
+                    this.encounterExp += expValue*multiplier;
+                },
+                switchWeak: function(event){
+                    var creatureName = event.target.attributes.value.value;
+                    var clickedCreature = this.addedCreatures.filter(creature => creature.data.name === creatureName)[0];
+                    if(clickedCreature){
+                        clickedCreature.isWeak = !clickedCreature.isWeak;
+                        clickedCreature.isElite = false;
+                    }
+                    this.setEncounterExp();
+                },
+                switchElite: function(event){
+                    var creatureName = event.target.attributes.value.value;
+                    var clickedCreature = this.addedCreatures.filter(creature => creature.data.name === creatureName)[0];
+                    if(clickedCreature){
+                        clickedCreature.isWeak = false;
+                        clickedCreature.isElite = !clickedCreature.isElite;
+                    }
+                    this.setEncounterExp();
+                }
+            }
+        })
+    </script>
+    
+    <!-- bootstrap - Latest compiled and minified JavaScript -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/js/bootstrap.bundle.min.js" integrity="sha384-b5kHyXgcpbZJO/tY9Ul7kGkf1S0CWuKcCD38l8YkeH8z8QjE0GmW1gYU5S9FOnJ0" crossorigin="anonymous"></script>
+</body>
+</html>
