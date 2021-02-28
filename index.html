@@ -46,10 +46,23 @@
             margin-right: 3px;
             font: bolder normal normal 16px/1 FontAwesome;
         }
+        #external-link-window{
+            -webkit-box-shadow: 1px -1px 4px 0 #454545;
+            box-shadow: 1px -1px 4px 0 #454545;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            background: #FFF;
+            width: 520px;
+            height: 600px;
+            max-height:100vh;
+            max-width: 100%;
+            z-index:9001;
+        }
         #external-link-window iframe{
             width: 500px;
             max-width: 100%;
-            height: 600px;
+            height:90%;
             margin: 0 auto;
             display: block;
         }
@@ -79,9 +92,16 @@
         }
     </style>
 </head>
-<body>    
-    <div class="container-fluid">
-        <div v-cloak id="app">
+<body>
+    <div v-cloak id="app">
+        <div v-if="activeLink !== false" id="external-link-window">
+            <div class="d-flex flex-row-reverse">
+                <i class="icon-big bi bi-x-circle" @click="closeLink"></i>
+                <i @click.prevent="openLinkInPopup(activeLink, $event)" class="icon-big bi bi-box-arrow-up-right"></i>
+            </div>
+            <iframe align="middle" :src="activeLink" frameborder="0"></iframe>
+        </div>
+        <div class="container-fluid">
             <div class="row pt-4">
                 <div class="col-lg-4">
                     <div class="row">
@@ -166,13 +186,6 @@
                     </div>
                     <div v-if="addedCreatures.length > 0" class="mt-2">
                         <button type="button" class="btn btn-primary mb-1" v-on:click="resetEncounter">Reset encounter</button>
-                    </div>
-                    <div v-if="activeLink !== false" id="external-link-window">
-                        <div class="d-flex flex-row-reverse">
-                            <i class="icon-big bi bi-x-circle" @click="closeLink"></i>
-                            <i @click.prevent="openLinkInPopup(activeLink, $event)"class="icon-big bi bi-box-arrow-up-right"></i>
-                        </div>
-                        <iframe align="middle" :src="activeLink" frameborder="0"></iframe>
                     </div>
                 </div>
                 <div class="col-lg-8">
