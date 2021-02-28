@@ -70,20 +70,25 @@
             <div class="row pt-4">
                 <div class="col-lg-4">
                     <div class="row">
-                        <div class="row-filter col-3">
-                            <label for="partySizeFilter" class="form-label">Party size</label>
-                            <select v-model='partyFilters.partySizeFilter' class="form-select" id="partySizeFilter">
-                                <option v-for="size in partySize" :value="size">{{size}} Players</option>
-                            </select>
-                        </div>   
-                        <div class="row-filter col-3">
-                            <label for="partyLevelFilter" class="form-label">Party level</label>
-                            <select v-model='partyFilters.partyLevelFilter' class="form-select" id="partyLevelFilter" v-on:click="setEncounterExp">
-                                <option v-for="level in partyLevel" :value="level">Level {{level}}</option>
-                            </select>
-                        </div>    
-                        <div class="col-6">
-                            <ul class="list-group-flush">
+
+                        <div class="col-12 col-sm-6">
+                            <div class="row">
+                                <div class="col-lg-12">
+                                    <label for="partySizeFilter" class="form-label mb-0">Party size</label>
+                                    <select v-model='partyFilters.partySizeFilter' class="form-select" id="partySizeFilter">
+                                        <option v-for="size in partySize" :value="size">{{size}} Players</option>
+                                    </select>
+                                </div>
+                                <div class="col-lg-12">
+                                    <label for="partyLevelFilter" class="form-label mb-0">Party level</label>
+                                    <select v-model='partyFilters.partyLevelFilter' class="form-select" id="partyLevelFilter" v-on:click="setEncounterExp">
+                                        <option v-for="level in partyLevel" :value="level">Level {{level}}</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>  
+                        <div class="col-12 col-sm-6 mb-xs-1 mt-xs-1">
+                            <ul class="list-group-flush ps-0">
                                 <li v-for="difficulty in encounterDifficulties" class="d-flex justify-content-between align-items-center">
                                     <div :style="difficulty.isActive ? difficultyStyle : ''">{{difficulty.displayName}}</div>
                                     <div :style="difficulty.isActive ? difficultyStyle : ''">{{difficulty.exp}} XP</div>
@@ -103,7 +108,8 @@
                             </thead>
                             <tbody>
                                 <tr v-for="(creature, index) in encounterCreatures">
-                                    <td><button 
+                                    <td class="text-nowrap">
+                                        <button 
                                         type="button" 
                                         class="btn btn-success btn-sm add-button"
                                         v-bind:value="creature.data.name"
@@ -119,9 +125,9 @@
                                     </td>
                                     <td>
                                         <div class="btn-group" role="group">
-                                            <button type="button" :class="creature.isWeak ? 'btn btn-success status-button' : 'btn btn-secondary status-button'" v-on:click="switchWeak(creature, index, $event)"><i class="bi bi-star"></i></button>
-                                            <button type="button" :class="!creature.isWeak && !creature.isElite ? 'btn btn-success status-button' : 'btn btn-secondary status-button'" v-on:click="switchNormal(creature, index, $event)"><i class="bi bi-star-half"></i></button>
-                                            <button type="button" :class="creature.isElite ? 'btn btn-success status-button' : 'btn btn-secondary status-button'" v-on:click="switchElite(creature, index, $event)"><i class="bi bi-star-fill"></i></button>
+                                            <button type="button" :class="creature.isWeak ? 'btn btn-success status-button' : 'btn btn-secondary status-button'" v-on:click="switchWeak(creature, index, $event)"><i class="bi bi-shield-slash"></i></button>
+                                            <button type="button" :class="!creature.isWeak && !creature.isElite ? 'btn btn-success status-button' : 'btn btn-secondary status-button'" v-on:click="switchNormal(creature, index, $event)"><i class="bi bi-shield"></i></button>
+                                            <button type="button" :class="creature.isElite ? 'btn btn-success status-button' : 'btn btn-secondary status-button'" v-on:click="switchElite(creature, index, $event)"><i class="bi bi-shield-plus"></i></button>
                                         </div>
                                     </td>
                                     <td>
@@ -143,7 +149,7 @@
                     <div>
                         <span>TOTAL XP: {{encounterExp}} XP <b v-if="activeEncounterDifficulty.displayName != ''">({{activeEncounterDifficulty.displayName}})</b></span>
                     </div>
-                    <div v-if="addedCreatures.length > 0" class="row-filter mt-2">
+                    <div v-if="addedCreatures.length > 0" class="mt-2">
                         <button type="button" class="btn btn-primary mb-1" v-on:click="resetEncounter">Reset encounter</button>
                     </div>
                     <div v-if="activeLink !== false" id="external-link-window">
@@ -155,90 +161,94 @@
                     </div>
                 </div>
                 <div class="col-lg-8">
-                    <div class="input-group mb-3">
-                        <div class="input-group-prepend col-1">
-                            <span class="input-group-text" id="basic-addon1">Search</span>
+                    <div class="row g-1">
+
+                        <div class="order-1 order-md-2 col-8 col-sm-6 col-md-8 align-self-end">
+                            <div class="w-100">
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="bi bi-search d-md-none"></i> <span class="d-none d-md-inline">Search</span></span>
+                                    <input type="text" class="form-control" placeholder="Creature name" aria-label="Creature Name" aria-describedby="basic-addon1" v-model='filters.nameFilter'>
+                                </div>
+                            </div>       
+                        </div>                
+                        
+                        <div class="order-2 oder-sm-1 order-md-1 col-4 col-sm-3 col-md-2">
+                            <label for="levelMinFilter" class="form-label">Lvl Min</label>
+                            <select v-model='filters.levelMinFilter' class="form-select" id="levelMinFilter">
+                                <option v-for="level in levels" :value="level">{{level}}</option>
+                            </select>
+                        </div>                        
+                        <div class="order-2 oder-sm-1 order-md-1 col-4 col-sm-3 col-md-2">
+                            <label for="levelMaxFilter" class="form-label">Lvl Max</label>
+                            <select v-model='filters.levelMaxFilter' class="form-select" id="levelMaxFilter">
+                                <option v-for="level in levels" :value="level">{{level}}</option>
+                            </select>
                         </div>
-                        <div class="row-filter col-7">
-                            <input type="text" class="form-control" placeholder="Creature name" aria-label="Username" aria-describedby="basic-addon1" v-model='filters.nameFilter'>
-                        </div>       
-                    </div>                
-                    
-                    <div class="row-filter col-1">
-                        <label for="levelMinFilter" class="form-label">Level Min</label>
-                        <select v-model='filters.levelMinFilter' class="form-select" id="levelMinFilter">
-                            <option v-for="level in levels" :value="level">{{level}}</option>
-                        </select>
-                    </div>                        
-                    <div class="row-filter col-1">
-                        <label for="levelMaxFilter" class="form-label">Level Max</label>
-                        <select v-model='filters.levelMaxFilter' class="form-select" id="levelMaxFilter">
-                            <option v-for="level in levels" :value="level">{{level}}</option>
-                        </select>
+                        <div class="order-2 col-4 col-md-2">
+                            <label for="familyFilter" class="form-label">Family</label>
+                            <select v-model='filters.familyFilter' class="form-select" id="familyFilter">
+                                <option v-for="family in families" :value="family.value">{{family.displayName}}</option>
+                            </select>
+                        </div>
+                        <div class="order-2 col-4 col-sm col-md-2">
+                            <label for="alignmentFilter" class="form-label">Alignment</label>
+                            <select v-model='filters.alignmentFilter' class="form-select" id="alignmentFilter">
+                                <option v-for="alignment in alignments" :value="alignment.value">{{alignment.displayName}}</option>
+                            </select>
+                        </div>                    
+                        <div class="order-2 col-4 col-sm">
+                            <label for="typeFilter" class="form-label">Type</label>
+                            <select v-model='filters.typeFilter' class="form-select" id="typeFilter">
+                                <option v-for="type in types" :value="type.value">{{type.displayName}}</option>
+                            </select>
+                        </div>                    
+                        <div class="order-2 col-4 col-sm">
+                            <label for="sizeFilter" class="form-label">Size</label>
+                            <select v-model='filters.sizeFilter' class="form-select" id="sizeFilter">
+                                <option v-for="size in sizes" :value="size.value">{{size.displayName}}</option>
+                            </select>
+                        </div>                      
+                        <div class="order-1 order-sm-2 col-4 col-sm align-self-end">
+                            <button type="button" class="btn btn-primary w-100" v-on:click="resetFilters">Reset filters</button>
+                        </div>   
                     </div>
-                    <div class="row-filter col">
-                        <label for="familyFilter" class="form-label">Family</label>
-                        <select v-model='filters.familyFilter' class="form-select" id="familyFilter">
-                            <option v-for="family in families" :value="family.value">{{family.displayName}}</option>
-                        </select>
-                    </div>
-                    <div class="row-filter col">
-                        <label for="alignmentFilter" class="form-label">Alignment</label>
-                        <select v-model='filters.alignmentFilter' class="form-select" id="alignmentFilter">
-                            <option v-for="alignment in alignments" :value="alignment.value">{{alignment.displayName}}</option>
-                        </select>
-                    </div>                    
-                    <div class="row-filter col">
-                        <label for="typeFilter" class="form-label">Type</label>
-                        <select v-model='filters.typeFilter' class="form-select" id="typeFilter">
-                            <option v-for="type in types" :value="type.value">{{type.displayName}}</option>
-                        </select>
-                    </div>                    
-                    <div class="row-filter col">
-                        <label for="sizeFilter" class="form-label">Size</label>
-                        <select v-model='filters.sizeFilter' class="form-select" id="sizeFilter">
-                            <option v-for="size in sizes" :value="size.value">{{size.displayName}}</option>
-                        </select>
-                    </div>                      
-                    <div class="row-filter col">
-                        <button type="button" class="btn btn-primary mb-1" v-on:click="resetFilters">Reset filters</button>
-                    </div>   
-                    
-                    <div class="table-responsive">
-                        <table class="table">
-                            <thead>
-                                <tr>
-                                    <th scope="col">Add</th>
-                                    <th scope="col">Name</th>
-                                    <th scope="col">Level</th>
-                                    <th scope="col">Family</th>
-                                    <th scope="col">Alignment</th>
-                                    <th scope="col">Type</th>
-                                    <th scope="col">Size</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr v-for="creature in filteredCreatureList">
-                                    <td>
-                                        <div class="btn-group" role="group">
-                                            <button type="button" class="btn btn-success status-button" v-on:click="addCreature(creature, true, false, $event)"><i class="bi bi-star"></i></button>
-                                            <button type="button" class="btn btn-success btn-sm status-button" v-on:click="addCreature(creature, false, false, $event)"><i class="bi bi-star-half"></i></button>
-                                            <button type="button" class="btn btn-success status-button" v-on:click="addCreature(creature, false, true, $event)"><i class="bi bi-star-fill"></i></button>
-                                        </div>
-                                    </td>
-                                    <td><a :href="creature.link" @click.prevent="openLink(creature.link, $event)">{{creature.name}}</a></td>
-                                    <td>{{creature.level}}</td>
-                                    <td>{{creature.family}}</td>
-                                    <td>{{creature.alignment}}</td>
-                                    <td>{{creature.type}}</td>
-                                    <td>{{creature.size}}</td>
-                                </tr>
-                            </tbody>
-                        </table>
+                
+                    <div class="row">
+                        <div class="col table-responsive">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th scope="col">Add</th>
+                                        <th scope="col">Name</th>
+                                        <th scope="col">Level</th>
+                                        <th scope="col">Family</th>
+                                        <th scope="col">Alignment</th>
+                                        <th scope="col">Type</th>
+                                        <th scope="col">Size</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr v-for="creature in filteredCreatureList">
+                                        <td>
+                                            <div class="btn-group" role="group">
+                                                <button type="button" class="btn btn-success status-button" v-on:click="addCreature(creature, true, false, $event)"><i class="bi bi-shield-slash"></i></button>
+                                                <button type="button" class="btn btn-success btn-sm status-button" v-on:click="addCreature(creature, false, false, $event)"><i class="bi bi-shield"></i></button>
+                                                <button type="button" class="btn btn-success status-button" v-on:click="addCreature(creature, false, true, $event)"><i class="bi bi-shield-plus"></i></button>
+                                            </div>
+                                        </td>
+                                        <td><a :href="creature.link" @click.prevent="openLink(creature.link, $event)">{{creature.name}}</a></td>
+                                        <td>{{creature.level}}</td>
+                                        <td>{{creature.family}}</td>
+                                        <td>{{creature.alignment}}</td>
+                                        <td>{{creature.type}}</td>
+                                        <td>{{creature.size}}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
             </div>
-            
         </div>
     </div>
     <script src='./monsterTable2.js'></script>
@@ -248,12 +258,8 @@
             return (el) => {return el[objectKey].toLowerCase() === search.toLowerCase()};
         };
         
-        function sortString(){
-            return (a,b) => {
-                if(a.value > b.value){ return 1; }
-                if(a.value < b.value){ return -1; }
-                return 0;
-            }
+        function sortString(a, b){
+            return b.value - a.value;
         }
         
         function setDifficultiesBasedOnNumberOfPlayers(partySize, difficulties){
@@ -366,7 +372,7 @@
                         this.alignments.push({displayName:creature.alignment, value:creature.alignment.toLowerCase()});
                     }
                 });
-                this.alignments.sort(sortString());
+                this.alignments.sort(sortString);
                 
                 this.creatureList.forEach((creature) => {
                     creature.family.split(', ').forEach((family) => {
@@ -376,7 +382,7 @@
                     });
                     
                 });
-                this.families.sort(sortString());
+                this.families.sort(sortString);
                 
                 this.creatureList.forEach((creature) => {
                     creature.type.split(', ').forEach((type) => {
@@ -386,14 +392,14 @@
                     });
                     
                 });
-                this.types.sort(sortString());
+                this.types.sort(sortString);
                 
                 this.creatureList.forEach((creature) => {
                     if(!this.sizes.find(lowerCaseMatch(creature.size, "value"))){                        
                         this.sizes.push({displayName:creature.size, value:creature.size.toLowerCase()});
                     }
                 });
-                this.sizes.sort(sortString());
+                this.sizes.sort(sortString);
                 
                 this.creatureList.forEach((creature) => {
                     if(!this.levels.includes(creature.level)){                        
