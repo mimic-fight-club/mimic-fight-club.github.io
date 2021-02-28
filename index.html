@@ -283,7 +283,9 @@
         };
         
         function sortString(a, b){
-            return b.value - a.value;
+            if(a.value < b.value) return -1;
+            if(a.value > b.value) return 1;
+            return 0;
         }
         
         function setDifficultiesBasedOnNumberOfPlayers(partySize, difficulties){
@@ -324,11 +326,11 @@
                 creatureList: creatureList,
                 filters: getDefaultFilters(),
                 partyFilters: { partySizeFilter: 4, partyLevelFilter: 1},
-                alignments: [{displayName:'All', value:''}],
-                families: [{displayName: 'All', value:''}],
-                types: [{displayName:'All', value:''}],
-                sizes: [{displayName:'All', value:''}],
-                levels: ['All'],
+                alignments: [],
+                families: [],
+                types: [],
+                sizes: [],
+                levels: [],
                 addedCreatures: [],
                 partySize: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
                 partyLevel: [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20],
@@ -397,6 +399,7 @@
                     }
                 });
                 this.alignments.sort(sortString);
+                this.alignments.unshift({ displayName: 'All', value: '' });
                 
                 this.creatureList.forEach((creature) => {
                     creature.family.split(', ').forEach((family) => {
@@ -407,6 +410,7 @@
                     
                 });
                 this.families.sort(sortString);
+                this.families.unshift({ displayName: 'All', value: '' });
                 
                 this.creatureList.forEach((creature) => {
                     creature.type.split(', ').forEach((type) => {
@@ -417,6 +421,7 @@
                     
                 });
                 this.types.sort(sortString);
+                this.types.unshift({ displayName: 'All', value: '' });
                 
                 this.creatureList.forEach((creature) => {
                     if(!this.sizes.find(lowerCaseMatch(creature.size, "value"))){                        
@@ -424,6 +429,7 @@
                     }
                 });
                 this.sizes.sort(sortString);
+                this.sizes.unshift({ displayName: 'All', value: '' });
                 
                 this.creatureList.forEach((creature) => {
                     if(!this.levels.includes(creature.level)){                        
@@ -433,6 +439,7 @@
                 this.levels.sort((a,b) => {
                     return a-b;
                 });
+                this.levels.unshift('All')
             },
             methods:{
                 openLinkInPopup(link, event){
