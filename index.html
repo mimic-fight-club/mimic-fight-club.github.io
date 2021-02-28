@@ -458,7 +458,7 @@
                     this.addedCreatures = [];
                 },
                 addCreature: function(creatureObject, isWeak, isElite, event){
-                    var addedCreature = this.addedCreatures.filter(creature => creature.data.name === creatureObject.name && creature.isElite == isElite && creature.isWeak == isWeak)[0];
+                    var addedCreature = this.addedCreatures.filter(creature => creature.data.id === creatureObject.id && creature.isElite == isElite && creature.isWeak == isWeak)[0];
                     if(!addedCreature){
                         addedCreature = {data:creatureObject, amount:0, isElite:isElite, isWeak:isWeak};
                         this.addedCreatures.push(addedCreature);
@@ -504,7 +504,7 @@
                     this.encounterExp += expValue*multiplier;
                 },
                 mergeSameCreature: function(creatureObject, index){
-                    var sameCreature = this.addedCreatures.filter(creature => creature != creatureObject && creature.data.name == creatureObject.data.name && creature.isWeak == creatureObject.isWeak && creature.isElite == creatureObject.isElite)[0];
+                    var sameCreature = this.addedCreatures.filter(creature => creature != creatureObject && creature.data.id == creatureObject.data.id && creature.isWeak == creatureObject.isWeak && creature.isElite == creatureObject.isElite)[0];
                     if(sameCreature){
                         sameCreature.amount += creatureObject.amount;
                         this.addedCreatures.splice(index, 1);
