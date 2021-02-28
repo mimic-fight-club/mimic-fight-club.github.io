@@ -2,6 +2,8 @@
 <html>
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <!-- Latest compiled and minified CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-BmbxuPwQa2lc/FVzBcNJ7UAyJxM6wuqIj61tLrc4wSX0szH/Ev+nYRRuWlolflfl" crossorigin="anonymous">
     <!-- Bootstrap Icons -->
@@ -43,6 +45,19 @@
             margin-left: 3px;
             margin-right: 3px;
             font: bolder normal normal 16px/1 FontAwesome;
+        }
+        #external-link-window iframe{
+            width: 500px;
+            max-width: 100%;
+            height: 600px;
+            margin: 0 auto;
+            display: block;
+        }
+        #external-link-window .icon-big{
+            font-size: 1.6rem;
+            align-self: sflex-end;
+            padding: 0 5px;
+            cursor: pointer;
         }
     </style>
 </head>
@@ -112,6 +127,7 @@
                                         {{creature.data.name}}
                                     </a>
                                 </td>
+                                <td><a :href="creature.data.link" @click.prevent="openLink(creature.data.link, $event)">{{creature.data.name}}</a></td>
                                 <td>
                                     <span v-if="!creature.isWeak && !creature.isElite"> {{creature.data.level}}</span>
                                     <span v-if="creature.isWeak"> {{creature.data.level-1}}</span>
@@ -125,7 +141,14 @@
                     </div>
                     <div v-if="addedCreatures.length > 0" class="row-filter mt-2">
                         <button type="button" class="btn btn-primary mb-1" v-on:click="resetEncounter">Reset encounter</button>
-                    </div>   
+                    </div>
+                    <div v-if="activeLink !== false" id="external-link-window">
+                        <div class="d-flex flex-row-reverse">
+                            <i class="icon-big bi bi-x-circle" @click="closeLink"></i>
+                            <i @click.prevent="openLinkInPopup(activeLink, $event)"class="icon-big bi bi-box-arrow-up-right"></i>
+                        </div>
+                        <iframe align="middle" :src="activeLink" frameborder="0"></iframe>
+                    </div>
                 </div>
                 <div class="col-lg-8">
                     <div class="input-group mb-3">
@@ -198,7 +221,7 @@
                                         <button type="button" class="btn btn-success status-button" v-on:click="addCreature(creature, false, true, $event)"><i class="bi bi-star-fill"></i></button>
                                     </div>
                                 </td>
-                                <td><a :href="creature.link">{{creature.name}}</a></td>
+                                <td><a :href="creature.link" @click.prevent="openLink(creature.link, $event)">{{creature.name}}</a></td>
                                 <td>{{creature.family}}</td>
                                 <td>{{creature.level}}</td>
                                 <td>{{creature.alignment}}</td>
@@ -261,6 +284,7 @@
         var app = new Vue({
             el: '#app',
             data: {
+                activeLink: false,
                 creatureList: creatureList,
                 filters: getDefaultFilters(),
                 alignments: [{displayName:'All', value:''}],
@@ -374,6 +398,15 @@
                 });
             },
             methods:{
+                openLinkInPopup(link, event){
+                    window.open(link);
+                },
+                closeLink(event){
+                    this.activeLink = false;
+                },
+                openLink(link, event){
+                    this.activeLink = link;
+                },
                 resetFilters: function(event){
                     this.filters = getDefaultFilters();
                 },
