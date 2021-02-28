@@ -62,6 +62,21 @@
         [v-cloak] {
             display: none;
         }
+        .encounter-trivial{
+            color: #2fbd00
+        }
+        .encounter-low{
+            color: #7bbd00
+        }
+        .encounter-moderate{
+            color: #b4bd00
+        }
+        .encounter-severe{
+            color: #bd7e00
+        }
+        .encounter-extreme{
+            color: #bd0900
+        }
     </style>
 </head>
 <body>    
@@ -90,7 +105,7 @@
                         <div class="col-12 col-sm-6 mb-xs-1 mt-xs-1">
                             <ul class="list-group-flush ps-0">
                                 <li v-for="difficulty in encounterDifficulties" class="d-flex justify-content-between align-items-center">
-                                    <div :style="difficulty.isActive ? difficultyStyle : ''">{{difficulty.displayName}}</div>
+                                    <div :style="difficulty.isActive ? difficultyStyle : ''"><i :class="'bi-reception-'+difficulty.id+' encounter-'+difficulty.displayName.toLowerCase()" class="bi"></i> {{difficulty.displayName}}</div>
                                     <div :style="difficulty.isActive ? difficultyStyle : ''">{{difficulty.exp}} XP</div>
                                 </li>
                             </ul>
@@ -147,7 +162,7 @@
                         </table>
                     </div>
                     <div>
-                        <span>TOTAL XP: {{encounterExp}} XP <b v-if="activeEncounterDifficulty.displayName != ''">({{activeEncounterDifficulty.displayName}})</b></span>
+                        <span>TOTAL XP: {{encounterExp}} XP <b v-if="activeEncounterDifficulty.displayName != ''">(<i :class="'bi-reception-'+activeEncounterDifficulty.id+' encounter-'+activeEncounterDifficulty.displayName.toLowerCase()" class="bi"></i>{{activeEncounterDifficulty.displayName}})</b></span>
                     </div>
                     <div v-if="addedCreatures.length > 0" class="mt-2">
                         <button type="button" class="btn btn-primary mb-1" v-on:click="resetEncounter">Reset encounter</button>
@@ -285,11 +300,11 @@
         }       
         var getDefaultEncounterDifficulties = function(){
             return [
-            {displayName: "Trivial", exp: 40, isActive: false},
-            {displayName: "Low", exp: 60, isActive: false},
-            {displayName: "Moderate", exp: 80, isActive: false},
-            {displayName: "Severe", exp: 120, isActive: false},
-            {displayName: "Extreme", exp: 160, isActive: false}
+            {id: 0, displayName: "Trivial", exp: 40, isActive: false},
+            {id: 1, displayName: "Low", exp: 60, isActive: false},
+            {id: 2, displayName: "Moderate", exp: 80, isActive: false},
+            {id: 3, displayName: "Severe", exp: 120, isActive: false},
+            {id: 4, displayName: "Extreme", exp: 160, isActive: false}
             ];
         }
         
