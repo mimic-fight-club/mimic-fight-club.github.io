@@ -72,13 +72,13 @@
                     <div class="row">
                         <div class="row-filter col-3">
                             <label for="partySizeFilter" class="form-label">Party size</label>
-                            <select v-model='filters.partySizeFilter' class="form-select" id="partySizeFilter">
+                            <select v-model='partyFilters.partySizeFilter' class="form-select" id="partySizeFilter">
                                 <option v-for="size in partySize" :value="size">{{size}} Players</option>
                             </select>
                         </div>   
                         <div class="row-filter col-3">
                             <label for="partyLevelFilter" class="form-label">Party level</label>
-                            <select v-model='filters.partyLevelFilter' class="form-select" id="partyLevelFilter" v-on:click="setEncounterExp">
+                            <select v-model='partyFilters.partyLevelFilter' class="form-select" id="partyLevelFilter" v-on:click="setEncounterExp">
                                 <option v-for="level in partyLevel" :value="level">Level {{level}}</option>
                             </select>
                         </div>    
@@ -275,7 +275,7 @@
         }
         
         var getDefaultFilters = function(){
-            return {nameFilter: '', alignmentFilter: '', levelMinFilter: 'All', levelMaxFilter: 'All', familyFilter: '', typeFilter: '', sizeFilter: '', partySizeFilter: 4, partyLevelFilter: 1};
+            return {nameFilter: '', alignmentFilter: '', levelMinFilter: 'All', levelMaxFilter: 'All', familyFilter: '', typeFilter: '', sizeFilter: ''};
         }       
         var getDefaultEncounterDifficulties = function(){
             return [
@@ -293,6 +293,7 @@
                 activeLink: false,
                 creatureList: creatureList,
                 filters: getDefaultFilters(),
+                partyFilters: { partySizeFilter: 4, partyLevelFilter: 1},
                 alignments: [{displayName:'All', value:''}],
                 families: [{displayName: 'All', value:''}],
                 types: [{displayName:'All', value:''}],
@@ -344,15 +345,15 @@
                 encounterDifficulties: function(){
                     var difficulties = getDefaultEncounterDifficulties();
                     var defaultFilters = getDefaultFilters();
-                    if(this.filters.partySizeFilter != defaultFilters.partySizeFilter){
-                        setDifficultiesBasedOnNumberOfPlayers(this.filters.partySizeFilter, difficulties);
-                    }
+                    setDifficultiesBasedOnNumberOfPlayers(this.partyFilters.partySizeFilter, difficulties);
                     
                     var activeDifficulties = difficulties.filter(diff => {
-                        return this.encounterExp <= diff.exp;
+                        return this.encounterExp >= diff.exp;
                     })
-                    var activeDifficulty = activeDifficulties[0] || difficulties[4];
-                    activeDifficulty.isActive = this.addedCreatures.length > 0;
+                    if(activeDifficulties.length > 0){
+                        var activeDifficulty = activeDifficulties[activeDifficulties.length-1];
+                        activeDifficulty.isActive = this.addedCreatures.length > 0;
+                    }
                     return difficulties;
                 },
                 activeEncounterDifficulty: function(){
@@ -447,7 +448,7 @@
                     });
                 },
                 adjustEncounterExpForCreatureLvl: function(creatureLevel, multiplier){
-                    var levelDiff = creatureLevel - this.filters.partyLevelFilter;
+                    var levelDiff = creatureLevel - this.partyFilters.partyLevelFilter;
                     var expValue = 0;
                     switch(levelDiff){
                         case -4: expValue = 10; break;
