@@ -6,7 +6,6 @@
 
     <!-- Latest compiled and minified CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-BmbxuPwQa2lc/FVzBcNJ7UAyJxM6wuqIj61tLrc4wSX0szH/Ev+nYRRuWlolflfl" crossorigin="anonymous">
-    
     <!-- Bootstrap Icons -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.0/font/bootstrap-icons.css">
     
@@ -45,7 +44,6 @@
             padding-right: 5px;
             margin-left: 3px;
             margin-right: 3px;
-            display: inline-block;
             font: bolder normal normal 16px/1 FontAwesome;
         }
         #external-link-window iframe{
@@ -93,39 +91,47 @@
                     <table class="table">
                         <thead>
                             <tr>
-                                <th scope="col">Count</th>
-                                <th scope="col">Name</th>
-                                <th scope="col">Level</th>
-                                <th class="col-1"></th>
-                                <th class="col-1"></th>
+                                <th class="col">Count</th>
+                                <th class="col">Template</th>
+                                <th class="col">Name</th>
+                                <th class="col">Level</th>
                             </tr>
                         </thead>
                         <tbody>
-                            <tr v-for="creature in encounterCreatures">
+                            <tr v-for="(creature, index) in encounterCreatures">
                                 <td><button 
                                     type="button" 
                                     class="btn btn-success btn-sm add-button"
                                     v-bind:value="creature.data.name"
-                                    v-on:click="addCreature">+</button>
+                                    v-on:click="addCreature(creature.data, creature.isWeak, creature.isElite, $event)">+</button>
                                     <span style="padding-left:5px; padding-right:5px;">{{creature.amount}}</span>                                    
                                     <button 
                                     type="button" 
                                     class="btn btn-secondary btn-sm remove-button"
-                                    v-bind:value="creature.data.name"
-                                    v-on:click="removeCreature">-</button><button 
+                                    v-on:click="removeCreature(creature, index, $event)">-</button><button 
                                     type="button" 
                                     class="btn btn-danger btn-sm remove-button"
-                                    v-bind:value="creature.data.name"
-                                    v-on:click="completelyRemoveCreature">x</button>
+                                    v-on:click="completelyRemoveCreature(creature, index, $event)">x</button>
                                 </td>
-                                <td><a :href="creature.data.link" @click.prevent="openLink(creature.data.link, $event)">{{creature.data.name}}</a></td>
                                 <td>
-                                    {{creature.data.level}}
-                                    <span v-if="creature.isWeak"> ({{creature.data.level-1}})</span>
-                                    <span v-if="creature.isElite"> ({{creature.data.level+1}})</span>
+                                    <div class="btn-group" role="group">
+                                        <button type="button" :class="creature.isWeak ? 'btn btn-success status-button' : 'btn btn-secondary status-button'" v-on:click="switchWeak(creature, index, $event)"><i class="bi bi-star"></i></button>
+                                        <button type="button" :class="!creature.isWeak && !creature.isElite ? 'btn btn-success status-button' : 'btn btn-secondary status-button'" v-on:click="switchNormal(creature, index, $event)"><i class="bi bi-star-half"></i></button>
+                                        <button type="button" :class="creature.isElite ? 'btn btn-success status-button' : 'btn btn-secondary status-button'" v-on:click="switchElite(creature, index, $event)"><i class="bi bi-star-fill"></i></button>
+                                    </div>
                                 </td>
-                                <td><button type="button" :class="creature.isWeak ? 'btn btn-warning status-button' : 'btn btn-dark status-button'" v-on:click="switchWeak" v-bind:value="creature.data.name">W</button></td>
-                                <td><button type="button" :class="creature.isElite ? 'btn btn-danger status-button' : 'btn btn-dark status-button'" v-on:click="switchElite" v-bind:value="creature.data.name">E</button></td>
+                                <td>
+                                    <a :href="creature.data.link" @click.prevent="openLink(creature.data.link, $event)">
+                                        <span v-if="creature.isWeak">Weak</span>
+                                        <span v-if="creature.isElite">Elite</span>
+                                        {{creature.data.name}}
+                                    </a>
+                                </td>
+                                <td>
+                                    <span v-if="!creature.isWeak && !creature.isElite"> {{creature.data.level}}</span>
+                                    <span v-if="creature.isWeak"> {{creature.data.level-1}}</span>
+                                    <span v-if="creature.isElite"> {{creature.data.level+1}}</span>
+                                </td>
                             </tr>
                         </tbody>
                     </table>
@@ -207,11 +213,12 @@
                         </thead>
                         <tbody>
                             <tr v-for="creature in filteredCreatureList">
-                                <td><button 
-                                    type="button" 
-                                    class="btn btn-success btn-sm add-button"
-                                    v-bind:value="creature.name"
-                                    v-on:click="addCreature">+</button>
+                                <td>
+                                    <div class="btn-group" role="group">
+                                        <button type="button" class="btn btn-success status-button" v-on:click="addCreature(creature, true, false, $event)"><i class="bi bi-star"></i></button>
+                                        <button type="button" class="btn btn-success btn-sm status-button" v-on:click="addCreature(creature, false, false, $event)"><i class="bi bi-star-half"></i></button>
+                                        <button type="button" class="btn btn-success status-button" v-on:click="addCreature(creature, false, true, $event)"><i class="bi bi-star-fill"></i></button>
+                                    </div>
                                 </td>
                                 <td><a :href="creature.link" @click.prevent="openLink(creature.link, $event)">{{creature.name}}</a></td>
                                 <td>{{creature.family}}</td>
@@ -249,7 +256,7 @@
             difficulties[3].exp = 30*partySize;
             difficulties[4].exp = 40*partySize;
         }
-
+        
         function getCreatureLevel(creature){
             if(creature.isWeak){
                 return creature.data.level -1;
@@ -405,41 +412,24 @@
                 resetEncounter: function(event){
                     this.addedCreatures = [];
                 },
-                addCreature: function(event){
-                    var creatureName = event.target.attributes.value.value;
-                    var clickedCreature = this.creatureList.filter(creature => creature.name === creatureName);
-                    if(clickedCreature.length > 0){
-                        var addedCreature = (this.addedCreatures || []).filter(creature => creature.data.name === creatureName)[0];
-                        if(!addedCreature){
-                            addedCreature = {data:clickedCreature[0], amount:0, isElite:false, isWeak:false};
-                            this.addedCreatures.push(addedCreature);
-                        }
-                        addedCreature.amount++;
+                addCreature: function(creatureObject, isWeak, isElite, event){
+                    var addedCreature = this.addedCreatures.filter(creature => creature.data.name === creatureObject.name && creature.isElite == isElite && creature.isWeak == isWeak)[0];
+                    if(!addedCreature){
+                        addedCreature = {data:creatureObject, amount:0, isElite:isElite, isWeak:isWeak};
+                        this.addedCreatures.push(addedCreature);
                     }
+                    addedCreature.amount++;
                     this.setEncounterExp();
                 },
-                removeCreature: function(event){
-                    var creatureName = event.target.attributes.value.value;
-                    var clickedCreature = this.addedCreatures.filter(creature => creature.data.name === creatureName)[0];
-                    if(clickedCreature){
-                        clickedCreature.amount--;
-                    }
-                    if(clickedCreature.amount <= 0){
-                        var index = this.addedCreatures.indexOf(clickedCreature);
+                removeCreature: function(creatureObject, index, event){
+                    this.addedCreatures[index].amount--;
+                    if(this.addedCreatures[index].amount <= 0){
                         this.addedCreatures.splice(index, 1);
                     }                    
                     this.setEncounterExp();
                 },
-                completelyRemoveCreature: function(event){
-                    var creatureName = event.target.attributes.value.value;
-                    var clickedCreature = this.addedCreatures.filter(creature => creature.data.name === creatureName)[0];
-                    if(clickedCreature){
-                        clickedCreature.amount = 0;
-                    }
-                    if(clickedCreature.amount <= 0){
-                        var index = this.addedCreatures.indexOf(clickedCreature);
-                        this.addedCreatures.splice(index, 1);
-                    }                    
+                completelyRemoveCreature: function(creatureObject, index, event){
+                    this.addedCreatures.splice(index, 1); 
                     this.setEncounterExp();
                 },
                 setEncounterExp: function(){
@@ -468,22 +458,32 @@
                     }
                     this.encounterExp += expValue*multiplier;
                 },
-                switchWeak: function(event){
-                    var creatureName = event.target.attributes.value.value;
-                    var clickedCreature = this.addedCreatures.filter(creature => creature.data.name === creatureName)[0];
-                    if(clickedCreature){
-                        clickedCreature.isWeak = !clickedCreature.isWeak;
-                        clickedCreature.isElite = false;
+                mergeSameCreature: function(creatureObject, index){
+                    var sameCreature = this.addedCreatures.filter(creature => creature != creatureObject && creature.data.name == creatureObject.data.name && creature.isWeak == creatureObject.isWeak && creature.isElite == creatureObject.isElite)[0];
+                    if(sameCreature){
+                        sameCreature.amount += creatureObject.amount;
+                        this.addedCreatures.splice(index, 1);
                     }
+                },
+                switchWeak: function(creature, index, event){
+                    if(creature.isWeak){return;}
+                    this.removeCreature(creature.data, index);
+                    this.addCreature(creature.data, true, false);
+                    this.mergeSameCreature(creature, index);
                     this.setEncounterExp();
                 },
-                switchElite: function(event){
-                    var creatureName = event.target.attributes.value.value;
-                    var clickedCreature = this.addedCreatures.filter(creature => creature.data.name === creatureName)[0];
-                    if(clickedCreature){
-                        clickedCreature.isWeak = false;
-                        clickedCreature.isElite = !clickedCreature.isElite;
-                    }
+                switchElite: function(creature, index, event){
+                    if(creature.isElite){return;}                    
+                    this.removeCreature(creature.data, index);
+                    this.addCreature(creature.data, false, true);
+                    this.mergeSameCreature(creature, index);
+                    this.setEncounterExp();
+                },
+                switchNormal: function(creature, index, event){
+                    if(creature.isWeak && creature.isElite){return;}
+                    this.removeCreature(creature.data, index);
+                    this.addCreature(creature.data, false, false);
+                    this.mergeSameCreature(creature, index);
                     this.setEncounterExp();
                 }
             }
