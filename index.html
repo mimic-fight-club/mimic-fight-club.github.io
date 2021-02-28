@@ -11,6 +11,7 @@
     
     <title>Gnome Fight Club</title>
     <script src="https://unpkg.com/vue"></script>
+    <script src="https://cdn.jsdelivr.net/npm/lodash@4.17.21/lodash.min.js"></script>
     
     <style>
         table.table-dark tbody tr:hover td{
@@ -162,11 +163,16 @@
                                         </div>
                                     </td>
                                     <td>
-                                        <a :href="creature.data.link" @click.prevent="openLink(creature.data.link, $event)">
+                                        <a v-if="creature.data.link !== ''" :href="creature.data.link" @click.prevent="openLink(creature.data.link, $event)">
                                             <span v-if="creature.isWeak">Weak</span>
                                             <span v-if="creature.isElite">Elite</span>
                                             {{creature.data.name}}
                                         </a>
+                                        <template v-else>
+                                            <span v-if="creature.isWeak">Weak</span>
+                                            <span v-if="creature.isElite">Elite</span>
+                                            {{creature.data.name}}
+                                        </template>
                                     </td>
                                     <td>
                                         <span v-if="!creature.isWeak && !creature.isElite"> {{creature.data.level}}</span>
@@ -236,7 +242,9 @@
                             <button type="button" class="btn btn-primary w-100" v-on:click="resetFilters">Reset filters</button>
                         </div>   
                     </div>
-                
+                    <div class="row flex-row-reverse pt-2">
+                        <div class="col-auto"><button @click="createCustomCreature" type="button" class="btn btn-primary w-100">Create Custom Creature</button></div>
+                    </div>
                     <div class="row">
                         <div class="col table-responsive">
                             <table class="table table-dark">
@@ -252,6 +260,44 @@
                                     </tr>
                                 </thead>
                                 <tbody>
+                                    <tr v-for="creature in customCreatures">
+                                        <td>
+                                            <div class="btn-group" role="group">
+                                                <button type="button" class="btn btn-success status-button"
+                                                    v-on:click="addCreature(creature, true, false, $event)"><i class="bi bi-shield-slash"></i></button>
+                                                <button type="button" class="btn btn-success btn-sm status-button"
+                                                    v-on:click="addCreature(creature, false, false, $event)"><i class="bi bi-shield"></i></button>
+                                                <button type="button" class="btn btn-success status-button"
+                                                    v-on:click="addCreature(creature, false, true, $event)"><i class="bi bi-shield-plus"></i></button>
+                                            </div>
+                                        </td>
+                                        <td><input type="text" v-model="creature.name" class="form-control"></td>
+                                        <td>
+                                            <select v-model='creature.level' class="form-select" id="levelMinFilter">
+                                                <option v-for="level in levels" :value="level">{{level}}</option>
+                                            </select>
+                                        </td>
+                                        <td>
+                                            <select v-model='creature.family' class="form-select" id="familyFilter">
+                                                <option v-for="family in families" :value="family.value">{{family.displayName}}</option>
+                                            </select>
+                                        </td>
+                                        <td>
+                                            <select v-model='creature.alignment' class="form-select" id="alignmentFilter">
+                                                <option v-for="alignment in alignments" :value="alignment.value">{{alignment.displayName}}</option>
+                                            </select>
+                                        </td>
+                                        <td>
+                                            <select v-model='creature.type' class="form-select" id="typeFilter">
+                                                <option v-for="type in types" :value="type.value">{{type.displayName}}</option>
+                                            </select>
+                                        </td>
+                                        <td>
+                                            <select v-model='creature.size' class="form-select" id="sizeFilter">
+                                                <option v-for="size in sizes" :value="size.value">{{size.displayName}}</option>
+                                            </select>
+                                        </td>
+                                    </tr>
                                     <tr v-for="creature in filteredCreatureList">
                                         <td>
                                             <div class="btn-group" role="group">
@@ -322,6 +368,8 @@
         var app = new Vue({
             el: '#app',
             data: {
+                customCreatureId: 0,
+                customCreatures:[],
                 activeLink: false,
                 creatureList: creatureList,
                 filters: getDefaultFilters(),
@@ -441,7 +489,44 @@
                 });
                 this.levels.unshift('All')
             },
+            created: function(){
+                this.debouncedSetEncounterExp = _.debounce(this.setEncounterExp, 200);
+            },
+            watch:{
+                customCreatures: {
+                    handler: function(newCreatures, oldCreatures){
+                        //watcher on creatures to update the xp of the encounter when there is a change in level
+                        if(newCreatures.length != oldCreatures.length) return;//change doesn't
+                        this.debouncedSetEncounterExp();
+                    },
+                    deep: true
+                }
+            },
             methods:{
+                createCustomCreature(){
+                    this.customCreatureId++;
+                    let maxFilter = this.filters.levelMaxFilter;
+                    let minFilter = this.filters.levelMinFilter;
+                    let level = 1;
+                    if(minFilter !== "All" && maxFilter !== "All"){
+                       level =  Math.floor((minFilter + maxFilter) / 2);
+                    }else if(minFilter !== "All"){
+                        level = minFilter;
+                    }else if(maxFilter !== "All"){
+                        level = maxFilter;
+                    }
+                    
+                    this.customCreatures.push({ 
+                        "id": "Custom-" + this.customCreatureId, 
+                        "category": "Custom", 
+                        "link": "", 
+                        "name": "Custom Creature " + this.customCreatureId, 
+                        "family": this.filters.familyFilter, 
+                        "level": level, 
+                        "alignment": this.filters.alignmentFilter, 
+                        "type": this.filters.typeFilter, 
+                        "size": this.filters.sizeFilter });
+                },
                 openLinkInPopup(link, event){
                     window.open(link);
                 },
@@ -458,7 +543,7 @@
                     this.addedCreatures = [];
                 },
                 addCreature: function(creatureObject, isWeak, isElite, event){
-                    var addedCreature = this.addedCreatures.filter(creature => creature.data.name === creatureObject.name && creature.isElite == isElite && creature.isWeak == isWeak)[0];
+                    var addedCreature = this.addedCreatures.filter(creature => creature.data.id === creatureObject.id && creature.isElite == isElite && creature.isWeak == isWeak)[0];
                     if(!addedCreature){
                         addedCreature = {data:creatureObject, amount:0, isElite:isElite, isWeak:isWeak};
                         this.addedCreatures.push(addedCreature);
@@ -504,7 +589,7 @@
                     this.encounterExp += expValue*multiplier;
                 },
                 mergeSameCreature: function(creatureObject, index){
-                    var sameCreature = this.addedCreatures.filter(creature => creature != creatureObject && creature.data.name == creatureObject.data.name && creature.isWeak == creatureObject.isWeak && creature.isElite == creatureObject.isElite)[0];
+                    var sameCreature = this.addedCreatures.filter(creature => creature != creatureObject && creature.data.id == creatureObject.data.id && creature.isWeak == creatureObject.isWeak && creature.isElite == creatureObject.isElite)[0];
                     if(sameCreature){
                         sameCreature.amount += creatureObject.amount;
                         this.addedCreatures.splice(index, 1);
