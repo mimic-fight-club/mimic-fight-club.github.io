@@ -522,7 +522,7 @@
                     this.setEncounterExp();
                 },
                 switchNormal: function(creature, index, event){
-                    if(creature.isWeak && creature.isElite){return;}
+                    if(!creature.isWeak && !creature.isElite){return;}
                     this.removeCreature(creature.data, index);
                     this.addCreature(creature.data, false, false);
                     this.mergeSameCreature(creature, index);
