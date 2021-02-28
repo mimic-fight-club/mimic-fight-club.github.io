@@ -121,13 +121,12 @@
                                     </div>
                                 </td>
                                 <td>
-                                    <a :href="creature.data.link">
+                                    <a :href="creature.data.link" @click.prevent="openLink(creature.data.link, $event)">
                                         <span v-if="creature.isWeak">Weak</span>
                                         <span v-if="creature.isElite">Elite</span>
                                         {{creature.data.name}}
                                     </a>
                                 </td>
-                                <td><a :href="creature.data.link" @click.prevent="openLink(creature.data.link, $event)">{{creature.data.name}}</a></td>
                                 <td>
                                     <span v-if="!creature.isWeak && !creature.isElite"> {{creature.data.level}}</span>
                                     <span v-if="creature.isWeak"> {{creature.data.level-1}}</span>
