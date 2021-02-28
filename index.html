@@ -13,46 +13,41 @@
     <script src="https://unpkg.com/vue"></script>
     
     <style>
-        tbody tr:hover{
-            background-color: lightgray;
+        table.table-dark tbody tr:hover td{
+            background-color: #444;
         }
-        .row-filter{
-            display: inline-block;
+        select.form-select, input.form-control, input.form-control:focus, option, span.input-group-text{
+            background-color: #666;
+            color: #eee;
+            border-color:#444;
         }
-        .add-button{
-            padding-bottom: 4px;
-            padding-top: 4px;
-            padding-left: 7px;
-            padding-right: 7px;
-            display: inline-block;
-            font: bolder normal normal 16px/1 FontAwesome;
+        input.form-control:focus{
+            background-color: #555;
         }
-        .remove-button{
-            padding-bottom: 5px;
-            padding-top: 3px;
-            padding-left: 9px;
-            padding-right: 9px;
-            margin-left: 2px;
-            margin-right: 2px;
-            display: inline-block;
-            font: bolder normal normal 16px/1 FontAwesome;
+        span.input-group-text{
+            background-color: #444;
+        }
+        input.form-control::placeholder{ /* Chrome, Firefox, Opera, Safari 10.1+ */
+            color: #aaa;
+            opacity: 1;
+        }
+        input.form-control::ms-input-placeholder{ /* Internet Explorer 10-11 */
+            color: #aaa;
+        }
+        input.form-control::-ms-input-placeholder{/* Microsoft Edge */
+            color: #aaa;
         }
         .status-button{
-            padding-bottom: 5px;
-            padding-top: 3px;
-            padding-left: 5px;
-            padding-right: 5px;
             margin-left: 3px;
             margin-right: 3px;
             font: bolder normal normal 16px/1 FontAwesome;
         }
         #external-link-window{
-            -webkit-box-shadow: 1px -1px 4px 0 #454545;
-            box-shadow: 1px -1px 4px 0 #454545;
+            -webkit-box-shadow: 1px -1px 4px rgba(0,0,0,0.5);
+            box-shadow: 1px -1px 4px 0 rgba(0,0,0,0.5);
             position: fixed;
             bottom: 0;
             left: 0;
-            background: #FFF;
             width: 520px;
             height: 600px;
             max-height:100vh;
@@ -92,9 +87,9 @@
         }
     </style>
 </head>
-<body>
+<body class="bg-dark text-light">
     <div v-cloak id="app">
-        <div v-if="activeLink !== false" id="external-link-window">
+        <div v-if="activeLink !== false" id="external-link-window" class="bg-dark">
             <div class="d-flex flex-row-reverse">
                 <i class="icon-big bi bi-x-circle" @click="closeLink"></i>
                 <i @click.prevent="openLinkInPopup(activeLink, $event)" class="icon-big bi bi-box-arrow-up-right"></i>
@@ -132,7 +127,7 @@
                         </div>   
                     </div>
                     <div class="table-responsive">
-                        <table class="table">
+                        <table class="table table-dark">
                             <thead>
                                 <tr>
                                     <th class="col">Count</th>
@@ -148,15 +143,16 @@
                                         type="button" 
                                         class="btn btn-success btn-sm add-button"
                                         v-bind:value="creature.data.name"
-                                        v-on:click="addCreature(creature.data, creature.isWeak, creature.isElite, $event)">+</button>
+                                        v-on:click="addCreature(creature.data, creature.isWeak, creature.isElite, $event)"><i class="bi bi-plus"></i></button>
                                         <span style="padding-left:5px; padding-right:5px;">{{creature.amount}}</span>                                    
                                         <button 
                                         type="button" 
                                         class="btn btn-secondary btn-sm remove-button"
-                                        v-on:click="removeCreature(creature, index, $event)">-</button><button 
+                                        v-on:click="removeCreature(creature, index, $event)"><i class="bi bi-dash"></i></button>
+                                        <button 
                                         type="button" 
                                         class="btn btn-danger btn-sm remove-button"
-                                        v-on:click="completelyRemoveCreature(creature, index, $event)">x</button>
+                                        v-on:click="completelyRemoveCreature(creature, index, $event)"><i class="bi bi-x"></i></button>
                                     </td>
                                     <td>
                                         <div class="btn-group" role="group">
@@ -243,7 +239,7 @@
                 
                     <div class="row">
                         <div class="col table-responsive">
-                            <table class="table">
+                            <table class="table table-dark">
                                 <thead>
                                     <tr>
                                         <th scope="col">Add</th>
