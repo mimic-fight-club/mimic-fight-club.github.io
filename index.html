@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
+    
     <!-- Latest compiled and minified CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-BmbxuPwQa2lc/FVzBcNJ7UAyJxM6wuqIj61tLrc4wSX0szH/Ev+nYRRuWlolflfl" crossorigin="anonymous">
     <!-- Bootstrap Icons -->
@@ -59,11 +59,14 @@
             padding: 0 5px;
             cursor: pointer;
         }
+        [v-cloak] {
+            display: none;
+        }
     </style>
 </head>
 <body>    
     <div class="container-fluid">
-        <div id="app">
+        <div v-cloak id="app">
             <div class="row pt-4">
                 <div class="col-lg-4">
                     <div class="row">
@@ -88,53 +91,55 @@
                             </ul>
                         </div>   
                     </div>
-                    <table class="table">
-                        <thead>
-                            <tr>
-                                <th class="col">Count</th>
-                                <th class="col">Template</th>
-                                <th class="col">Name</th>
-                                <th class="col">Level</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr v-for="(creature, index) in encounterCreatures">
-                                <td><button 
-                                    type="button" 
-                                    class="btn btn-success btn-sm add-button"
-                                    v-bind:value="creature.data.name"
-                                    v-on:click="addCreature(creature.data, creature.isWeak, creature.isElite, $event)">+</button>
-                                    <span style="padding-left:5px; padding-right:5px;">{{creature.amount}}</span>                                    
-                                    <button 
-                                    type="button" 
-                                    class="btn btn-secondary btn-sm remove-button"
-                                    v-on:click="removeCreature(creature, index, $event)">-</button><button 
-                                    type="button" 
-                                    class="btn btn-danger btn-sm remove-button"
-                                    v-on:click="completelyRemoveCreature(creature, index, $event)">x</button>
-                                </td>
-                                <td>
-                                    <div class="btn-group" role="group">
-                                        <button type="button" :class="creature.isWeak ? 'btn btn-success status-button' : 'btn btn-secondary status-button'" v-on:click="switchWeak(creature, index, $event)"><i class="bi bi-star"></i></button>
-                                        <button type="button" :class="!creature.isWeak && !creature.isElite ? 'btn btn-success status-button' : 'btn btn-secondary status-button'" v-on:click="switchNormal(creature, index, $event)"><i class="bi bi-star-half"></i></button>
-                                        <button type="button" :class="creature.isElite ? 'btn btn-success status-button' : 'btn btn-secondary status-button'" v-on:click="switchElite(creature, index, $event)"><i class="bi bi-star-fill"></i></button>
-                                    </div>
-                                </td>
-                                <td>
-                                    <a :href="creature.data.link" @click.prevent="openLink(creature.data.link, $event)">
-                                        <span v-if="creature.isWeak">Weak</span>
-                                        <span v-if="creature.isElite">Elite</span>
-                                        {{creature.data.name}}
-                                    </a>
-                                </td>
-                                <td>
-                                    <span v-if="!creature.isWeak && !creature.isElite"> {{creature.data.level}}</span>
-                                    <span v-if="creature.isWeak"> {{creature.data.level-1}}</span>
-                                    <span v-if="creature.isElite"> {{creature.data.level+1}}</span>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th class="col">Count</th>
+                                    <th class="col">Template</th>
+                                    <th class="col">Name</th>
+                                    <th class="col">Level</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr v-for="(creature, index) in encounterCreatures">
+                                    <td><button 
+                                        type="button" 
+                                        class="btn btn-success btn-sm add-button"
+                                        v-bind:value="creature.data.name"
+                                        v-on:click="addCreature(creature.data, creature.isWeak, creature.isElite, $event)">+</button>
+                                        <span style="padding-left:5px; padding-right:5px;">{{creature.amount}}</span>                                    
+                                        <button 
+                                        type="button" 
+                                        class="btn btn-secondary btn-sm remove-button"
+                                        v-on:click="removeCreature(creature, index, $event)">-</button><button 
+                                        type="button" 
+                                        class="btn btn-danger btn-sm remove-button"
+                                        v-on:click="completelyRemoveCreature(creature, index, $event)">x</button>
+                                    </td>
+                                    <td>
+                                        <div class="btn-group" role="group">
+                                            <button type="button" :class="creature.isWeak ? 'btn btn-success status-button' : 'btn btn-secondary status-button'" v-on:click="switchWeak(creature, index, $event)"><i class="bi bi-star"></i></button>
+                                            <button type="button" :class="!creature.isWeak && !creature.isElite ? 'btn btn-success status-button' : 'btn btn-secondary status-button'" v-on:click="switchNormal(creature, index, $event)"><i class="bi bi-star-half"></i></button>
+                                            <button type="button" :class="creature.isElite ? 'btn btn-success status-button' : 'btn btn-secondary status-button'" v-on:click="switchElite(creature, index, $event)"><i class="bi bi-star-fill"></i></button>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <a :href="creature.data.link" @click.prevent="openLink(creature.data.link, $event)">
+                                            <span v-if="creature.isWeak">Weak</span>
+                                            <span v-if="creature.isElite">Elite</span>
+                                            {{creature.data.name}}
+                                        </a>
+                                    </td>
+                                    <td>
+                                        <span v-if="!creature.isWeak && !creature.isElite"> {{creature.data.level}}</span>
+                                        <span v-if="creature.isWeak"> {{creature.data.level-1}}</span>
+                                        <span v-if="creature.isElite"> {{creature.data.level+1}}</span>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
                     <div>
                         <span>TOTAL XP: {{encounterExp}} XP <b v-if="activeEncounterDifficulty.displayName != ''">({{activeEncounterDifficulty.displayName}})</b></span>
                     </div>
@@ -199,36 +204,38 @@
                         <button type="button" class="btn btn-primary mb-1" v-on:click="resetFilters">Reset filters</button>
                     </div>   
                     
-                    <table class="table">
-                        <thead>
-                            <tr>
-                                <th scope="col">Add</th>
-                                <th scope="col">Name</th>
-                                <th scope="col">Family</th>
-                                <th scope="col">Level</th>
-                                <th scope="col">Alignment</th>
-                                <th scope="col">Type</th>
-                                <th scope="col">Size</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr v-for="creature in filteredCreatureList">
-                                <td>
-                                    <div class="btn-group" role="group">
-                                        <button type="button" class="btn btn-success status-button" v-on:click="addCreature(creature, true, false, $event)"><i class="bi bi-star"></i></button>
-                                        <button type="button" class="btn btn-success btn-sm status-button" v-on:click="addCreature(creature, false, false, $event)"><i class="bi bi-star-half"></i></button>
-                                        <button type="button" class="btn btn-success status-button" v-on:click="addCreature(creature, false, true, $event)"><i class="bi bi-star-fill"></i></button>
-                                    </div>
-                                </td>
-                                <td><a :href="creature.link" @click.prevent="openLink(creature.link, $event)">{{creature.name}}</a></td>
-                                <td>{{creature.family}}</td>
-                                <td>{{creature.level}}</td>
-                                <td>{{creature.alignment}}</td>
-                                <td>{{creature.type}}</td>
-                                <td>{{creature.size}}</td>
-                            </tr>
-                        </tbody>
-                    </table>
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th scope="col">Add</th>
+                                    <th scope="col">Name</th>
+                                    <th scope="col">Level</th>
+                                    <th scope="col">Family</th>
+                                    <th scope="col">Alignment</th>
+                                    <th scope="col">Type</th>
+                                    <th scope="col">Size</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr v-for="creature in filteredCreatureList">
+                                    <td>
+                                        <div class="btn-group" role="group">
+                                            <button type="button" class="btn btn-success status-button" v-on:click="addCreature(creature, true, false, $event)"><i class="bi bi-star"></i></button>
+                                            <button type="button" class="btn btn-success btn-sm status-button" v-on:click="addCreature(creature, false, false, $event)"><i class="bi bi-star-half"></i></button>
+                                            <button type="button" class="btn btn-success status-button" v-on:click="addCreature(creature, false, true, $event)"><i class="bi bi-star-fill"></i></button>
+                                        </div>
+                                    </td>
+                                    <td><a :href="creature.link" @click.prevent="openLink(creature.link, $event)">{{creature.name}}</a></td>
+                                    <td>{{creature.level}}</td>
+                                    <td>{{creature.family}}</td>
+                                    <td>{{creature.alignment}}</td>
+                                    <td>{{creature.type}}</td>
+                                    <td>{{creature.size}}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
             
@@ -489,7 +496,6 @@
             }
         })
     </script>
-    
     <!-- bootstrap - Latest compiled and minified JavaScript -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/js/bootstrap.bundle.min.js" integrity="sha384-b5kHyXgcpbZJO/tY9Ul7kGkf1S0CWuKcCD38l8YkeH8z8QjE0GmW1gYU5S9FOnJ0" crossorigin="anonymous"></script>
 </body>
