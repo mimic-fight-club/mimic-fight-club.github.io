@@ -489,6 +489,26 @@
 
                 this.setValuesFromUrlParameters();
             },
+            watch:{
+                customCreatures: {
+                    handler: function(newCreatures, oldCreatures){
+                        this.setState();
+                    },
+                    deep: true
+                },
+                addedCreatures: {
+                    handler: function(newCreatures, oldCreatures){
+                        this.setState();
+                    },
+                    deep: true
+                },
+                filters: {
+                    handler: function(newFilters, oldFilters){
+                        this.setState();
+                    },
+                    deep: true
+                }
+            },
             methods:{
                 createCustomCreature(){
                     this.customCreatureId++;
@@ -526,6 +546,7 @@
                 },
                 resetFilters: function(event){
                     this.filters = getDefaultFilters();
+                    this.setState();
                 },
                 resetEncounter: function(event){
                     this.addedCreatures = [];
@@ -556,6 +577,14 @@
                     this.addedCreatures.forEach(creature => {
                         this.adjustEncounterExpForCreatureLvl(getCreatureLevel(creature), creature.amount);
                     });
+                },
+                setState: function(){                    
+                    var state = window.history.state || {};
+                    state.addedCreatures = this.addedCreatures;
+                    state.customCreatures = this.customCreatures;
+                    state.customCreatureId = this.customCreatureId;
+                    state.filters = this.filters;
+                    window.history.replaceState(state, '', new URL(window.location));
                 },
                 adjustEncounterExpForCreatureLvl: function(creatureLevel, multiplier){
                     var levelDiff = creatureLevel - this.partyFilters.partyLevelFilter;
@@ -607,12 +636,12 @@
                 setUrlPartyLevel: function(partyLevel){
                     var url = new URL(window.location);
                     url.searchParams.set("partyLevel", partyLevel);
-                    window.history.pushState({}, '', url);
+                    window.history.pushState(window.history.state, '', url);
                 },
                 setUrlPartySize: function(partySize){
                     var url = new URL(window.location);
                     url.searchParams.set("partySize", partySize);
-                    window.history.pushState({}, '', url);
+                    window.history.pushState(window.history.state, '', url);
                 },
                 setValuesFromUrlParameters: function(){
                     var url = new URL(window.location);
@@ -630,6 +659,12 @@
                     else{
                         this.setUrlPartySize(this.partyFilters.partySizeFilter);
                     }
+
+                    this.addedCreatures = (window.history.state || {}).addedCreatures || this.addedCreatures;
+                    this.customCreatures = (window.history.state || {}).customCreatures || this.customCreatures;
+                    this.customCreatureId = (window.history.state || {}).customCreatureId || this.customCreatureId;
+                    this.filters = (window.history.state || {}).filters || this.filters;
+                    this.setEncounterExp();
                 }
             }
         })
