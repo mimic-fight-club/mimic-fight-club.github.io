@@ -182,11 +182,31 @@
                             </tbody>
                         </table>
                     </div>
-                    <div>
+                    <div class="row">
                         <span>TOTAL XP: {{encounterExp}} XP <b v-if="activeEncounterDifficulty.displayName != ''">(<i :class="'bi-reception-'+activeEncounterDifficulty.id+' encounter-'+activeEncounterDifficulty.displayName.toLowerCase()" class="bi"></i>{{activeEncounterDifficulty.displayName}})</b></span>
                     </div>
                     <div v-if="addedCreatures.length > 0" class="mt-2">
                         <button type="button" class="btn btn-primary mb-1" v-on:click="resetEncounter">Reset encounter</button>
+                    </div>
+                    <div v-if="addedCreatures.length > 0" class="mt-2 row">
+                        <div class="col-8">
+                            <input type="text" class="form-control" placeholder="Encounter name" v-model='encounterName'>
+                        </div>          
+                        <div class="col-4">
+                            <button type="button" class="btn btn-primary w-100" v-on:click="saveEncounter" :disabled="encounterName.length === 0">Save encounter</button>
+                        </div>              
+                    </div>
+                    <div v-if="encounters.length > 0" class="row mt-2">
+                        <div class="col-8">
+                            <select v-model='selectedEncounterId' class="form-select">
+                                <option value="-1">Select encounter</option>
+                                <option v-for="encounter in encounters" :value="encounter.id">{{encounter.name}}</option>
+                            </select>
+                        </div>
+                        <div class="btn-group col-4" role="group">
+                            <button type="button" class="btn btn-primary" v-on:click="loadEncounter" style="margin-right:3px;">Load encounter</button>
+                            <button type="button" class="btn btn-danger" v-on:click="removeEncounter"><i class="bi bi-x ml-1"></i></button>
+                        </div>
                     </div>
                 </div>
                 <div class="col-lg-8">
@@ -195,7 +215,7 @@
                             <div class="w-100">
                                 <div class="input-group">
                                     <span class="input-group-text"><i class="bi bi-search d-md-none"></i> <span class="d-none d-md-inline">Search</span></span>
-                                    <input type="text" class="form-control" placeholder="Creature name" aria-label="Creature Name" aria-describedby="basic-addon1" v-model='filters.nameFilter'>
+                                    <input type="text" class="form-control" placeholder="Creature name" v-model='filters.nameFilter'>
                                 </div>
                             </div>       
                         </div>                
@@ -268,7 +288,7 @@
                                                 <button type="button" class="btn btn-success status-button"
                                                 v-on:click="addCreature(creature, false, true, $event)"><i class="bi bi-shield-plus"></i></button>
                                                 <button type="button" class="btn btn-danger status-button"
-                                                v-on:click="removeCustomCreature(creature, index, $event)"><i class="bi bi-trash"></i></button>
+                                                v-on:click="removeCustomCreature(creature, index, $event)"><i class="bi bi-x"></i></button>
                                             </div>
                                         </td>
                                         <td><input type="text" v-model="creature.name" class="form-control"></td>
@@ -383,7 +403,11 @@
                 partySize: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
                 partyLevel: [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20],
                 encounterExp: 0,
-                difficultyStyle: "font-weight: bold;"
+                difficultyStyle: "font-weight: bold;",
+                encounters: [],
+                encounterCounter: 1,
+                encounterName: '',
+                selectedEncounterId: -1
             },
             computed: {
                 filteredCreatureList: function(){
@@ -494,21 +518,26 @@
             watch:{
                 customCreatures: {
                     handler: function(newCreatures, oldCreatures){
-                        this.setState();
+                        this.saveCreatures();
                     },
                     deep: true
                 },
                 addedCreatures: {
                     handler: function(newCreatures, oldCreatures){
-                        this.setState();
+                        this.saveCreatures();
                     },
                     deep: true
                 },
                 filters: {
                     handler: function(newFilters, oldFilters){
-                        this.setState();
+                        window.localStorage.filters = JSON.stringify(this.filters);
                     },
                     deep: true
+                },
+                encounters: {
+                    handler: function(newEncounters, oldEncounters){
+                        window.localStorage.encounters = JSON.stringify(this.encounters);
+                    }
                 }
             },
             methods:{
@@ -548,7 +577,6 @@
                 },
                 resetFilters: function(event){
                     this.filters = getDefaultFilters();
-                    this.setState();
                 },
                 resetEncounter: function(event){
                     this.addedCreatures = [];
@@ -583,8 +611,7 @@
                         this.adjustEncounterExpForCreatureLvl(getCreatureLevel(creature), creature.amount);
                     });
                 },
-                setState: function(){
-                    window.localStorage.filters = JSON.stringify(this.filters);
+                saveCreatures: function(){
                     window.localStorage.addedCreatures = JSON.stringify(this.addedCreatures);
                     window.localStorage.customCreatures = JSON.stringify(this.customCreatures);
                     window.localStorage.customCreatureId = JSON.stringify(this.customCreatureId);
@@ -667,7 +694,31 @@
                     this.addedCreatures = JSON.parse(window.localStorage.addedCreatures) || this.addedCreatures;
                     this.customCreatures = JSON.parse(window.localStorage.customCreatures) || this.customCreatures;
                     this.customCreatureId = JSON.parse(window.localStorage.customCreatureId) || this.customCreatureId;
+                    this.encounters = JSON.parse(window.localStorage.encounters) || this.encounters;
                     this.setEncounterExp();
+                },
+                saveEncounter: function(){
+                    this.encounters.push({
+                        name: this.encounterName, 
+                        stringifyCreatures: JSON.stringify(this.addedCreatures),
+                        numberOfCreatures: this.addedCreatures.length,
+                        id: this.encounterCounter
+                    });
+                    this.encounterCounter++;
+                    this.encounterName = '';
+                },
+                loadEncounter: function(){
+                    var encounter = this.encounters.filter(encounter => encounter.id === this.selectedEncounterId)[0];
+                    if(encounter){
+                        this.addedCreatures = JSON.parse(encounter.stringifyCreatures);
+                    }
+                },
+                removeEncounter: function(){
+                    var index = this.encounters.findIndex(encounter => encounter.id === this.selectedEncounterId);
+                    if(index != -1){
+                        this.encounters.splice(index, 1);
+                    }
+                    this.selectedEncounterId = -1;
                 }
             }
         })
