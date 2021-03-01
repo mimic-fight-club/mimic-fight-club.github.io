@@ -101,18 +101,17 @@
             <div class="row pt-4">
                 <div class="col-lg-4">
                     <div class="row">
-
                         <div class="col-12 col-sm-6">
                             <div class="row">
                                 <div class="col-lg-12">
                                     <label for="partySizeFilter" class="form-label mb-0">Party size</label>
-                                    <select v-model='partyFilters.partySizeFilter' class="form-select" id="partySizeFilter">
+                                    <select v-model='partyFilters.partySizeFilter' class="form-select" id="partySizeFilter" @change="setUrlPartySize(partyFilters.partySizeFilter)">
                                         <option v-for="size in partySize" :value="size">{{size}} Players</option>
                                     </select>
                                 </div>
                                 <div class="col-lg-12">
                                     <label for="partyLevelFilter" class="form-label mb-0">Party level</label>
-                                    <select v-model='partyFilters.partyLevelFilter' class="form-select" id="partyLevelFilter" v-on:click="setEncounterExp">
+                                    <select v-model='partyFilters.partyLevelFilter' class="form-select" id="partyLevelFilter" v-on:click="setEncounterExp" @change="setUrlPartyLevel(partyFilters.partyLevelFilter)">
                                         <option v-for="level in partyLevel" :value="level">Level {{level}}</option>
                                     </select>
                                 </div>
@@ -192,7 +191,6 @@
                 </div>
                 <div class="col-lg-8">
                     <div class="row g-1">
-
                         <div class="order-1 order-md-2 col-8 col-sm-6 col-md-8 align-self-end">
                             <div class="w-100">
                                 <div class="input-group">
@@ -264,36 +262,36 @@
                                         <td>
                                             <div class="btn-group" role="group">
                                                 <button type="button" class="btn btn-success status-button"
-                                                    v-on:click="addCreature(creature, true, false, $event)"><i class="bi bi-shield-slash"></i></button>
+                                                v-on:click="addCreature(creature, true, false, $event)"><i class="bi bi-shield-slash"></i></button>
                                                 <button type="button" class="btn btn-success btn-sm status-button"
-                                                    v-on:click="addCreature(creature, false, false, $event)"><i class="bi bi-shield"></i></button>
+                                                v-on:click="addCreature(creature, false, false, $event)"><i class="bi bi-shield"></i></button>
                                                 <button type="button" class="btn btn-success status-button"
-                                                    v-on:click="addCreature(creature, false, true, $event)"><i class="bi bi-shield-plus"></i></button>
+                                                v-on:click="addCreature(creature, false, true, $event)"><i class="bi bi-shield-plus"></i></button>
                                             </div>
                                         </td>
                                         <td><input type="text" v-model="creature.name" class="form-control"></td>
                                         <td>
-                                            <select v-model='creature.level' class="form-select" id="levelMinFilter">
+                                            <select v-model='creature.level' class="form-select" @change="setEncounterExp">
                                                 <option v-for="level in levels" :value="level">{{level}}</option>
                                             </select>
                                         </td>
                                         <td>
-                                            <select v-model='creature.family' class="form-select" id="familyFilter">
+                                            <select v-model='creature.family' class="form-select">
                                                 <option v-for="family in families" :value="family.value">{{family.displayName}}</option>
                                             </select>
                                         </td>
                                         <td>
-                                            <select v-model='creature.alignment' class="form-select" id="alignmentFilter">
+                                            <select v-model='creature.alignment' class="form-select">
                                                 <option v-for="alignment in alignments" :value="alignment.value">{{alignment.displayName}}</option>
                                             </select>
                                         </td>
                                         <td>
-                                            <select v-model='creature.type' class="form-select" id="typeFilter">
+                                            <select v-model='creature.type' class="form-select">
                                                 <option v-for="type in types" :value="type.value">{{type.displayName}}</option>
                                             </select>
                                         </td>
                                         <td>
-                                            <select v-model='creature.size' class="form-select" id="sizeFilter">
+                                            <select v-model='creature.size' class="form-select">
                                                 <option v-for="size in sizes" :value="size.value">{{size.displayName}}</option>
                                             </select>
                                         </td>
@@ -488,19 +486,8 @@
                     return a-b;
                 });
                 this.levels.unshift('All')
-            },
-            created: function(){
-                this.debouncedSetEncounterExp = _.debounce(this.setEncounterExp, 200);
-            },
-            watch:{
-                customCreatures: {
-                    handler: function(newCreatures, oldCreatures){
-                        //watcher on creatures to update the xp of the encounter when there is a change in level
-                        if(newCreatures.length != oldCreatures.length) return;//change doesn't
-                        this.debouncedSetEncounterExp();
-                    },
-                    deep: true
-                }
+
+                this.setValuesFromUrlParameters();
             },
             methods:{
                 createCustomCreature(){
@@ -509,7 +496,7 @@
                     let minFilter = this.filters.levelMinFilter;
                     let level = 1;
                     if(minFilter !== "All" && maxFilter !== "All"){
-                       level =  Math.floor((minFilter + maxFilter) / 2);
+                        level =  Math.floor((minFilter + maxFilter) / 2);
                     }else if(minFilter !== "All"){
                         level = minFilter;
                     }else if(maxFilter !== "All"){
@@ -525,7 +512,8 @@
                         "level": level, 
                         "alignment": this.filters.alignmentFilter, 
                         "type": this.filters.typeFilter, 
-                        "size": this.filters.sizeFilter });
+                        "size": this.filters.sizeFilter 
+                    });
                 },
                 openLinkInPopup(link, event){
                     window.open(link);
@@ -615,6 +603,33 @@
                     this.addCreature(creature.data, false, false);
                     this.mergeSameCreature(creature, index);
                     this.setEncounterExp();
+                },
+                setUrlPartyLevel: function(partyLevel){
+                    var url = new URL(window.location);
+                    url.searchParams.set("partyLevel", partyLevel);
+                    window.history.pushState({}, '', url);
+                },
+                setUrlPartySize: function(partySize){
+                    var url = new URL(window.location);
+                    url.searchParams.set("partySize", partySize);
+                    window.history.pushState({}, '', url);
+                },
+                setValuesFromUrlParameters: function(){
+                    var url = new URL(window.location);
+                    var partyLevel = url.searchParams.get("partyLevel");
+                    var partySize = url.searchParams.get("partySize");
+                    if(partyLevel >= 1 && partyLevel <= 20){
+                        this.partyFilters.partyLevelFilter = partyLevel;
+                    }
+                    else{
+                        this.setUrlPartyLevel(this.partyFilters.partyLevelFilter);
+                    }
+                    if(partySize >= 1 && partySize <= 10){
+                        this.partyFilters.partySizeFilter = partySize;
+                    }
+                    else{
+                        this.setUrlPartySize(this.partyFilters.partySizeFilter);
+                    }
                 }
             }
         })
