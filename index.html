@@ -258,7 +258,7 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <tr v-for="creature in customCreatures">
+                                    <tr v-for="(creature, index) in customCreatures">
                                         <td>
                                             <div class="btn-group" role="group">
                                                 <button type="button" class="btn btn-success status-button"
@@ -267,6 +267,8 @@
                                                 v-on:click="addCreature(creature, false, false, $event)"><i class="bi bi-shield"></i></button>
                                                 <button type="button" class="btn btn-success status-button"
                                                 v-on:click="addCreature(creature, false, true, $event)"><i class="bi bi-shield-plus"></i></button>
+                                                <button type="button" class="btn btn-danger status-button"
+                                                v-on:click="removeCustomCreature(creature, index, $event)"><i class="bi bi-trash"></i></button>
                                             </div>
                                         </td>
                                         <td><input type="text" v-model="creature.name" class="form-control"></td>
@@ -487,7 +489,27 @@
                 });
                 this.levels.unshift('All')
 
-                this.setValuesFromUrlParameters();
+                this.setInitialValues();
+            },
+            watch:{
+                customCreatures: {
+                    handler: function(newCreatures, oldCreatures){
+                        this.setState();
+                    },
+                    deep: true
+                },
+                addedCreatures: {
+                    handler: function(newCreatures, oldCreatures){
+                        this.setState();
+                    },
+                    deep: true
+                },
+                filters: {
+                    handler: function(newFilters, oldFilters){
+                        this.setState();
+                    },
+                    deep: true
+                }
             },
             methods:{
                 createCustomCreature(){
@@ -526,6 +548,7 @@
                 },
                 resetFilters: function(event){
                     this.filters = getDefaultFilters();
+                    this.setState();
                 },
                 resetEncounter: function(event){
                     this.addedCreatures = [];
@@ -550,12 +573,21 @@
                     this.addedCreatures.splice(index, 1); 
                     this.setEncounterExp();
                 },
+                removeCustomCreature: function(creature, index, $event){
+                    this.customCreatures.splice(index, 1);
+                },
                 setEncounterExp: function(){
                     this.encounterExp = 0;
                     
                     this.addedCreatures.forEach(creature => {
                         this.adjustEncounterExpForCreatureLvl(getCreatureLevel(creature), creature.amount);
                     });
+                },
+                setState: function(){
+                    window.localStorage.filters = JSON.stringify(this.filters);
+                    window.localStorage.addedCreatures = JSON.stringify(this.addedCreatures);
+                    window.localStorage.customCreatures = JSON.stringify(this.customCreatures);
+                    window.localStorage.customCreatureId = JSON.stringify(this.customCreatureId);
                 },
                 adjustEncounterExpForCreatureLvl: function(creatureLevel, multiplier){
                     var levelDiff = creatureLevel - this.partyFilters.partyLevelFilter;
@@ -607,14 +639,14 @@
                 setUrlPartyLevel: function(partyLevel){
                     var url = new URL(window.location);
                     url.searchParams.set("partyLevel", partyLevel);
-                    window.history.pushState({}, '', url);
+                    window.history.pushState(window.history.state, '', url);
                 },
                 setUrlPartySize: function(partySize){
                     var url = new URL(window.location);
                     url.searchParams.set("partySize", partySize);
-                    window.history.pushState({}, '', url);
+                    window.history.pushState(window.history.state, '', url);
                 },
-                setValuesFromUrlParameters: function(){
+                setInitialValues: function(){
                     var url = new URL(window.location);
                     var partyLevel = url.searchParams.get("partyLevel");
                     var partySize = url.searchParams.get("partySize");
@@ -630,6 +662,12 @@
                     else{
                         this.setUrlPartySize(this.partyFilters.partySizeFilter);
                     }
+
+                    this.filters = JSON.parse(window.localStorage.filters) || this.filters;
+                    this.addedCreatures = JSON.parse(window.localStorage.addedCreatures) || this.addedCreatures;
+                    this.customCreatures = JSON.parse(window.localStorage.customCreatures) || this.customCreatures;
+                    this.customCreatureId = JSON.parse(window.localStorage.customCreatureId) || this.customCreatureId;
+                    this.setEncounterExp();
                 }
             }
         })
