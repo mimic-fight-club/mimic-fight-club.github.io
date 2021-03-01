@@ -318,21 +318,14 @@
                                             </select>
                                         </td>
                                     </tr>
-                                    <tr v-for="creature in filteredCreatureList">
-                                        <td>
-                                            <div class="btn-group" role="group">
-                                                <button type="button" class="btn btn-success status-button" v-on:click="addCreature(creature, true, false, $event)"><i class="bi bi-shield-slash"></i></button>
-                                                <button type="button" class="btn btn-success btn-sm status-button" v-on:click="addCreature(creature, false, false, $event)"><i class="bi bi-shield"></i></button>
-                                                <button type="button" class="btn btn-success status-button" v-on:click="addCreature(creature, false, true, $event)"><i class="bi bi-shield-plus"></i></button>
-                                            </div>
-                                        </td>
-                                        <td><a :href="creature.link" @click.prevent="openLink(creature.link, $event)">{{creature.name}}</a></td>
-                                        <td>{{creature.level}}</td>
-                                        <td>{{creature.family}}</td>
-                                        <td>{{creature.alignment}}</td>
-                                        <td>{{creature.type}}</td>
-                                        <td>{{creature.size}}</td>
-                                    </tr>
+                                    <template v-for="creature in filteredCreatureList">
+                                        <creature-list-item :creature="creature"
+                                            @add-weak="addCreature($event, true, false)"
+                                            @add-normal="addCreature($event, false, false)"
+                                            @add-elite="addCreature($event, false, true)"
+                                            @open-link="openLink($event)"
+                                        />
+                                    </template>
                                 </tbody>
                             </table>
                         </div>
@@ -342,6 +335,7 @@
         </div>
     </div>
     <script src='./monsterTable2.js'></script>
+    <script src='./components/creatureListItem.js'></script>
     <script>    
         
         function lowerCaseMatch(search, objectKey){
@@ -689,12 +683,16 @@
                     else{
                         this.setUrlPartySize(this.partyFilters.partySizeFilter);
                     }
-
-                    this.filters = JSON.parse(window.localStorage.filters) || this.filters;
-                    this.addedCreatures = JSON.parse(window.localStorage.addedCreatures) || this.addedCreatures;
-                    this.customCreatures = JSON.parse(window.localStorage.customCreatures) || this.customCreatures;
-                    this.customCreatureId = JSON.parse(window.localStorage.customCreatureId) || this.customCreatureId;
-                    this.encounters = JSON.parse(window.localStorage.encounters) || this.encounters;
+                    if(window.localStorage.filter)
+                        this.filters = JSON.parse(window.localStorage.filters);
+                    if(window.localStorage.addedCreatures)
+                        this.addedCreatures = JSON.parse(window.localStorage.addedCreatures);
+                    if(window.localStorage.customCreatures)
+                        this.customCreatures = JSON.parse(window.localStorage.customCreatures);
+                    if(window.localStorage.customCreatureId)
+                        this.customCreatureId = JSON.parse(window.localStorage.customCreatureId);
+                    if(window.localStorage.encounters)
+                        this.encounters = JSON.parse(window.localStorage.encounters);
                     this.setEncounterExp();
                 },
                 saveEncounter: function(){
