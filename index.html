@@ -402,7 +402,8 @@
                 encounterCounter: 1,
                 encounterName: '',
                 selectedEncounterId: -1,
-                filteredCreatureList: []
+                filteredCreatureList: [],
+                isAutomaticFilterEnabled: true
             },
             computed: {
                 encounterCreatures: function(){
@@ -498,14 +499,14 @@
                     deep: true
                 },
                 'filters.nameFilter': function(newValue, oldValue){
-                    this.debouncedFilterCreatureList();
+                    this.automaticCreatureFilter(true);
                 },
-                'filters.levelMinFilter': function(){ this.filterCreatures(); },
-                'filters.levelMaxFilter': function(){ this.filterCreatures(); },
-                'filters.familyFilter': function(){ this.filterCreatures(); },
-                'filters.typeFilter': function(){ this.filterCreatures(); },
-                'filters.alignmentFilter': function(){ this.filterCreatures(); },
-                'filters.sizeFilter': function(){ this.filterCreatures(); },
+                'filters.levelMinFilter': function(){ this.automaticCreatureFilter(); },
+                'filters.levelMaxFilter': function(){ this.automaticCreatureFilter(); },
+                'filters.familyFilter': function(){ this.automaticCreatureFilter(); },
+                'filters.typeFilter': function(){ this.automaticCreatureFilter(); },
+                'filters.alignmentFilter': function(){ this.automaticCreatureFilter(); },
+                'filters.sizeFilter': function(){ this.automaticCreatureFilter(); },
                 encounters: {
                     handler: function(newEncounters, oldEncounters){
                         window.localStorage.encounters = JSON.stringify(this.encounters);
@@ -513,7 +514,16 @@
                 }
             },
             created:function(){
+                //debounces the filtering for text input
                 this.debouncedFilterCreatureList = _.debounce(this.filterCreatures, 200);
+                this.automaticCreatureFilter = (debounced = false) => {
+                    if(this.isAutomaticFilterEnabled === false) return;
+                    if(debounced === true){
+                        this.debouncedFilterCreatureList();
+                    }else{
+                        this.filterCreatures();
+                    }
+                }
             },
             methods:{
                 filterCreatures: function(){
@@ -584,7 +594,12 @@
                     this.activeLink = link;
                 },
                 resetFilters: function(event){
+                    this.isAutomaticFilterEnabled = false;
                     this.filters = getDefaultFilters();
+                    this.$nextTick(() => {
+                        this.isAutomaticFilterEnabled = true;
+                    });
+                    this.filterCreatures();
                 },
                 resetEncounter: function(event){
                     this.addedCreatures = [];
