@@ -81,7 +81,7 @@ Vue.component('multi-select', {
                 <template v-else>All</template>
             </div>
             <div v-else class="input-group">
-                <input class="multi-select-input form-control" v-model="search" ref="searchInput" @keydown.esc="toggleHidden()"/>
+                <input class="multi-select-input form-control" v-model="search" ref="searchInput" @keydown.esc="toggleHidden()" @keydown.enter="switchFiltered(true)" @keydown.enter.ctrl="switchFiltered(false)"/>
                 <button class="btn btn-primary" type="button" @click="toggleHidden()"><i class="bi bi-check2-circle"></i></button>
             </div>
             
