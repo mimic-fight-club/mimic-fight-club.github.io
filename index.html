@@ -14,11 +14,52 @@
     <script src="https://cdn.jsdelivr.net/npm/lodash@4.17.21/lodash.min.js"></script>
     
     <style>
-
+        .multi-select > div{
+            position:relative;
+            z-index: 8001;
+        }
+        .multi-select-input{
+            position:relative;
+            border-color:#444;
+            background: #444;
+            cursor: pointer;
+            padding-right: 1rem;
+        }
+        .multi-select-close{
+            position:absolute;
+            right:0; top:0; bottom: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            font-size: 1.4rem
+        }
+        .multi-select-close:hover{
+            color: #bd0900;
+        }
+        .multi-select .multi-select-options{
+            padding: 5px;
+            position:absolute;
+            top: 100%;left:0; right: 0;
+            max-height: 300px;
+            overflow-y: auto;
+            background:#666;
+            color:#eee;
+        }
+        .multi-select .multi-select-options.hidden{
+            display:none;
+        }
+        .multi-select .multi-select-option:hover, .multi-select .multi-select-option *:hover{
+            cursor:pointer;
+        }
+        .multi-select-input.form-control{
+            overflow-x: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+        }
         table.table-dark tbody tr:hover td{
             background-color: #444;
         }
-        select.form-select, input.form-control, input.form-control:focus, option, span.input-group-text{
+        select.form-select, input.form-control, .multi-select-input.form-control, input.form-control:focus, option, span.input-group-text{
             background-color: #666;
             color: #eee;
             border-color:#444;
@@ -237,7 +278,6 @@
                                 </div>
                             </div>       
                         </div>                
-                        
                         <div class="order-2 oder-sm-1 order-md-1 col-4 col-sm-3 col-md-2">
                             <label for="levelMinFilter" class="form-label">Lvl Min</label>
                             <select v-model='filters.levelMinFilter' class="form-select" id="levelMinFilter">
@@ -252,27 +292,22 @@
                         </div>
                         <div class="order-2 col-4 col-md-2">
                             <label for="familyFilter" class="form-label">Family</label>
-                            <select v-model='filters.familyFilter' class="form-select" id="familyFilter">
-                                <option v-for="family in families" :value="family.value">{{family.displayName}}</option>
-                            </select>
+                            <multi-select :options="families" @selected="multiSelectToggle(families, $event)" @closed="closeFilterMultiSelect(families)" name="familyFilter"></multi-select>
                         </div>
                         <div class="order-2 col-4 col-sm col-md-2">
                             <label for="alignmentFilter" class="form-label">Alignment</label>
-                            <select v-model='filters.alignmentFilter' class="form-select" id="alignmentFilter">
-                                <option v-for="alignment in alignments" :value="alignment.value">{{alignment.displayName}}</option>
-                            </select>
+                            <multi-select :options="alignments" @selected="multiSelectToggle(alignments, $event)" @closed="closeFilterMultiSelect(alignments)"
+                                name="alignmentsFilter"></multi-select>
                         </div>                    
                         <div class="order-2 col-4 col-sm">
                             <label for="typeFilter" class="form-label">Type</label>
-                            <select v-model='filters.typeFilter' class="form-select" id="typeFilter">
-                                <option v-for="type in types" :value="type.value">{{type.displayName}}</option>
-                            </select>
+                            <multi-select :options="types" @selected="multiSelectToggle(types, $event)"
+                                @closed="closeFilterMultiSelect(types)" name="typesFilter"></multi-select>
                         </div>                    
                         <div class="order-2 col-4 col-sm">
                             <label for="sizeFilter" class="form-label">Size</label>
-                            <select v-model='filters.sizeFilter' class="form-select" id="sizeFilter">
-                                <option v-for="size in sizes" :value="size.value">{{size.displayName}}</option>
-                            </select>
+                            <multi-select :options="sizes" @selected="multiSelectToggle(sizes, $event)"
+                                @closed="closeFilterMultiSelect(sizes)" name="sizesFilter"></multi-select>
                         </div>                      
                         <div class="order-1 order-sm-2 col-4 col-sm align-self-end">
                             <button type="button" class="btn btn-primary w-100" v-on:click="resetFilters">Reset filters</button>
@@ -354,6 +389,7 @@
     </div>
     <script src='./monsterTable2.js'></script>
     <script src='./components/creatureListItem.js'></script>
+    <script src='./components/multiSelect.js'></script>
     <script>    
         
         function lowerCaseMatch(search, objectKey){
@@ -385,7 +421,7 @@
         }
         
         var getDefaultFilters = function(){
-            return {nameFilter: '', alignmentFilter: '', levelMinFilter: 'All', levelMaxFilter: 'All', familyFilter: '', typeFilter: '', sizeFilter: ''};
+            return {nameFilter: '', levelMinFilter: 'All', levelMaxFilter: 'All'};
         }       
         var getDefaultEncounterDifficulties = function(){
             return [
@@ -425,6 +461,26 @@
                 isProficiencyWithoutLevel: false
             },
             computed: {
+                alignmentFilter: function(){
+                    return this.alignments
+                        .filter((el) => {return el.selected === true})
+                        .map((el) => {return el.value} );
+                },
+                familyFilter: function () {
+                    return this.families
+                        .filter((el) => { return el.selected === true })
+                        .map((el) => { return el.value });
+                },
+                sizeFilter: function () {
+                    return this.sizes
+                        .filter((el) => { return el.selected === true })
+                        .map((el) => { return el.value });
+                },
+                typeFilter: function () {
+                    return this.types
+                        .filter((el) => { return el.selected === true })
+                        .map((el) => { return el.value });
+                },
                 encounterCreatures: function(){
                     return this.addedCreatures;
                 },
@@ -449,41 +505,37 @@
             mounted: function(){
                 this.creatureList.forEach((creature) => {
                     if(!this.alignments.find(lowerCaseMatch(creature.alignment, "value"))){                        
-                        this.alignments.push({displayName:creature.alignment, value:creature.alignment.toLowerCase()});
+                        this.alignments.push({displayName:creature.alignment, value:creature.alignment.toLowerCase(), selected: false});
                     }
                 });
                 this.alignments.sort(sortString);
-                this.alignments.unshift({ displayName: 'All', value: '' });
                 
                 this.creatureList.forEach((creature) => {
                     creature.family.split(', ').forEach((family) => {
                         if(!this.families.find(lowerCaseMatch(family, "value"))){                        
-                            this.families.push({displayName:family, value:family.toLowerCase()});
+                            this.families.push({displayName:family, value:family.toLowerCase(), selected: false});
                         }
                     });
                     
                 });
                 this.families.sort(sortString);
-                this.families.unshift({ displayName: 'All', value: '' });
                 
                 this.creatureList.forEach((creature) => {
                     creature.type.split(', ').forEach((type) => {
                         if(!this.types.find(lowerCaseMatch(type, "value"))){                        
-                            this.types.push({displayName:type, value:type.toLowerCase()});
+                            this.types.push({displayName:type, value:type.toLowerCase(), selected: false});
                         }
                     });
                     
                 });
                 this.types.sort(sortString);
-                this.types.unshift({ displayName: 'All', value: '' });
                 
                 this.creatureList.forEach((creature) => {
                     if(!this.sizes.find(lowerCaseMatch(creature.size, "value"))){                        
-                        this.sizes.push({displayName:creature.size, value:creature.size.toLowerCase()});
+                        this.sizes.push({displayName:creature.size, value:creature.size.toLowerCase(), selected: false});
                     }
                 });
                 this.sizes.sort(sortString);
-                this.sizes.unshift({ displayName: 'All', value: '' });
                 
                 this.creatureList.forEach((creature) => {
                     if(!this.levels.includes(creature.level)){                        
@@ -549,28 +601,49 @@
                 }
             },
             methods:{
+                closeFilterMultiSelect: function(filter){
+                    this.filterCreatures();
+                    filter.sort((a,b) => {
+                        if (a.selected === b.selected ){
+                            if (a.value < b.value) return -1;
+                            if (a.value > b.value) return 1;
+                            return 0;
+                        }else if(a.selected === true){
+                            return -1;
+                        }else{
+                            return 1;
+                        }
+                    });
+                },
+                multiSelectToggle: function(options, index){
+                    this.$set(options[index], 'selected', !options[index].selected);
+                },
                 filterCreatures: function(){
                     var defaultFilters = getDefaultFilters();
                     var creatures = this.creatureList.filter((creature) => {
-                        if (this.filters.alignmentFilter != defaultFilters.alignmentFilter && creature.alignment.toLowerCase() !== this.filters.alignmentFilter.toLowerCase()) {
-                            return false;
-                        };
-                        if (this.filters.familyFilter != defaultFilters.familyFilter && !creature.family.toLowerCase().includes(this.filters.familyFilter.toLowerCase())) {
-                            return false;
-                        };
-                        if (this.filters.typeFilter != defaultFilters.typeFilter && !creature.type.toLowerCase().includes(this.filters.typeFilter.toLowerCase())) {
-                            return false;
-                        };
-                        if (this.filters.sizeFilter != defaultFilters.sizeFilter && creature.size.toLowerCase() !== this.filters.sizeFilter.toLowerCase()) {
-                            return false;
-                        };
                         if (this.filters.levelMinFilter != defaultFilters.levelMinFilter && creature.level < this.filters.levelMinFilter) {
                             return false;
                         }
                         if (this.filters.levelMaxFilter != defaultFilters.levelMaxFilter && creature.level > this.filters.levelMaxFilter) {
                             return false;
                         }
-                        return creature.name.toLowerCase().includes(this.filters.nameFilter.toLowerCase()) && creature.alignment.toLowerCase();
+                        if(this.filters.nameFilter !== ""){
+                            return creature.name.toLowerCase().includes(this.filters.nameFilter.toLowerCase());
+                        }
+
+                        if (this.alignmentFilter.length > 0 && !this.alignmentFilter.find((el) => {return el === creature.alignment.toLowerCase();})) {
+                            return false;
+                        };
+                        if (this.sizeFilter.length > 0 && !this.sizeFilter.find((el) => { return el === creature.size.toLowerCase(); })) {
+                            return false;
+                        };
+                        if (this.familyFilter.length > 0 && !this.familyFilter.find((el) => { return el === creature.family.toLowerCase(); })) {
+                            return false;
+                        };
+                        if (this.typeFilter.length > 0 && !this.typeFilter.find((el) => { return el === creature.type.toLowerCase(); })) {
+                            return false;
+                        };
+                       return true;
                     });
                     this.filteredCreatureList = creatures.sort((a, b) => {
                         if (a.level > b.level) return 1;
@@ -618,7 +691,13 @@
                 },
                 resetFilters: function(event){
                     this.isAutomaticFilterEnabled = false;
+                    
                     this.filters = getDefaultFilters();
+                    this.alignments.map((el) => el.selected = false);
+                    this.families.map((el) => el.selected = false);
+                    this.types.map((el) => el.selected = false);
+                    this.sizes.map((el) => el.selected = false);
+
                     this.$nextTick(() => {
                         this.isAutomaticFilterEnabled = true;
                     });
@@ -737,8 +816,8 @@
                     else{
                         this.setUrlPartySize(this.partyFilters.partySizeFilter);
                     }
-                    if(window.localStorage.filters)
-                        this.filters = JSON.parse(window.localStorage.filters);
+                    /*if(window.localStorage.filters)
+                        this.filters = JSON.parse(window.localStorage.filters);*/
                     if(window.localStorage.addedCreatures)
                         this.addedCreatures = JSON.parse(window.localStorage.addedCreatures);
                     if(window.localStorage.customCreatures)
