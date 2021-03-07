@@ -36,16 +36,18 @@
         .multi-select-close:hover{
             color: #bd0900;
         }
-        .multi-select .multi-select-options{
+        .multi-select .multi-select-option-list .options{
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .multi-select .multi-select-option-list{
             padding: 5px;
             position:absolute;
             top: 100%;left:0; right: 0;
-            max-height: 300px;
-            overflow-y: auto;
             background:#666;
             color:#eee;
         }
-        .multi-select .multi-select-options.hidden{
+        .multi-select .multi-select-option-list.hidden{
             display:none;
         }
         .multi-select .multi-select-option:hover, .multi-select .multi-select-option *:hover{
