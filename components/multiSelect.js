@@ -59,8 +59,9 @@ Vue.component('multi-select', {
             if(this.search === "")
                 return opt;
             
+            let searchedValue = this.search.toLowerCase();
             return opt.filter((el) =>{ 
-                return el.displayName.toLowerCase().includes(this.search); 
+                return el.displayName.toLowerCase().includes(searchedValue); 
             });
         },
         selectedOptions: function(){
@@ -91,7 +92,7 @@ Vue.component('multi-select', {
                 </div>
                 <template v-if="filteredOptions.length > 0">
                     <div class="input-group w-100">
-                        <button class="btn btn-success w-50" style="border-bottom-left-radius: 0;" @click="switchFiltered(true)">Select</button>
+                        <button class="btn btn-success w-50" style="border-bottom-left-radius: 0;" @click="switchFiltered(true)">All</button>
                         <button class="btn btn-danger w-50" style="border-bottom-right-radius: 0;" @click="switchFiltered(false)">Clear</button>
                     </div>
                     <div class="options">

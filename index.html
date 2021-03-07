@@ -515,21 +515,19 @@
                 this.alignments.sort(sortString);
                 
                 this.creatureList.forEach((creature) => {
-                    creature.family.split(', ').forEach((family) => {
-                        if(!this.families.find(lowerCaseMatch(family, "value"))){                        
-                            this.families.push({displayName:family, value:family.toLowerCase(), selected: false});
-                        }
-                    });
+                    let family = creature.family;
+                    if(!this.families.find(lowerCaseMatch(family, "value"))){                        
+                        this.families.push({displayName:family, value:family.toLowerCase(), selected: false});
+                    }
                     
                 });
                 this.families.sort(sortString);
                 
                 this.creatureList.forEach((creature) => {
-                    creature.type.split(', ').forEach((type) => {
-                        if(!this.types.find(lowerCaseMatch(type, "value"))){                        
-                            this.types.push({displayName:type, value:type.toLowerCase(), selected: false});
-                        }
-                    });
+                    let type = creature.type;
+                    if(!this.types.find(lowerCaseMatch(type, "value"))){                        
+                        this.types.push({displayName:type, value:type.toLowerCase(), selected: false});
+                    }
                     
                 });
                 this.types.sort(sortString);
