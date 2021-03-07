@@ -13,10 +13,14 @@ Vue.component('multi-select', {
             }
         },
         unselectAll: function(){
+            let changed = false;
             this.options.forEach((el, index) =>{
-                if(el.selected === true)
+                if(el.selected === true){
                     this.$emit('selected', index);
+                    changed = true;
+                }
             })
+            this.$emit('closed');
         }
     },
     computed:{
