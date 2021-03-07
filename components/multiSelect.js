@@ -73,23 +73,26 @@ Vue.component('multi-select', {
     template: `
     <div class="multi-select">
         <div @click="refocus()">
-            <div v-if="isHidden" class="multi-select-input form-control" @click.self="toggleHidden()">
-                <template v-if="selectedOptions.length > 0">
-                    ({{selectedOptions.length}}) {{selectedOptions.join(', ')}}
-                    <div class="multi-select-close" @click="unselectAll"><i class="bi bi-x"></i></div>
-                </template>
-                <template v-else>All</template>
+            <div class="multi-select-input">
+                <div v-if="selectedOptions.length > 0" class="input-group">
+                    <input class="multi-select-input form-control" readonly  @click.self="toggleHidden()"
+                    :value="'(' + selectedOptions.length + ') ' + selectedOptions.join(', ')""/>
+                    <button class="btn btn-danger" type="button" @click="unselectAll()"><i class="bi bi-x"></i></button>
+                </div>
+                <div v-else class="input-group">
+                    <input class="multi-select-input form-control" readonly  @click.self="toggleHidden()" :value="'All'"/>
+                    <button class="btn btn-secondary" type="button" @click="toggleHidden()"><i class="bi bi-chevron-down"></i></button>
+                </div>
             </div>
-            <div v-else class="input-group">
-                <input class="multi-select-input form-control" v-model="search" ref="searchInput" @keydown.esc="toggleHidden()" @keydown.enter="switchFiltered(true)" @keydown.enter.ctrl="switchFiltered(false)"/>
-                <button class="btn btn-primary" type="button" @click="toggleHidden()"><i class="bi bi-check2-circle"></i></button>
-            </div>
-            
             <div class="multi-select-option-list" :class="{hidden: isHidden}">
+                <div class="input-group pb-2 pt-2">
+                    <input class="multi-select-input form-control" v-model="search" ref="searchInput" @keydown.esc="toggleHidden()" @keydown.enter="switchFiltered(true)" @keydown.enter.ctrl="switchFiltered(false)"/>
+                    <button class="btn btn-primary" type="button" @click="toggleHidden()"><i class="bi bi-check2-circle"></i></button>
+                </div>
                 <template v-if="filteredOptions.length > 0">
-                    <div class="input-group w-100 pb-2">
-                        <button class="btn btn-dark w-50" @click="switchFiltered(true)">Select</button>
-                        <button class="btn btn-dark w-50" @click="switchFiltered(false)">Clear</button>
+                    <div class="input-group w-100">
+                        <button class="btn btn-success w-50" style="border-bottom-left-radius: 0;" @click="switchFiltered(true)">Select</button>
+                        <button class="btn btn-danger w-50" style="border-bottom-right-radius: 0;" @click="switchFiltered(false)">Clear</button>
                     </div>
                     <div class="options">
                         <div v-for="option in filteredOptions" class="form-check form-switch multi-select-option">
