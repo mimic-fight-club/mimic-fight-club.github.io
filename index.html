@@ -826,7 +826,7 @@
                         this.customCreatures = JSON.parse(window.localStorage.customCreatures);
                     if(window.localStorage.customCreatureId)
                         this.customCreatureId = JSON.parse(window.localStorage.customCreatureId);
-                        if(window.localStorage.encounters){
+                    if(window.localStorage.encounters){
                         this.encounters = JSON.parse(window.localStorage.encounters);
                         this.encounters.forEach((encounter, index) => {
                             encounter.id = index;
