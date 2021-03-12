@@ -852,6 +852,7 @@
                     if(encounter){
                         this.addedCreatures = JSON.parse(encounter.stringifyCreatures);
                     }
+                    this.setEncounterExp();
                 },
                 removeEncounter: function(){
                     var index = this.encounters.findIndex(encounter => encounter.id === this.selectedEncounterId);
