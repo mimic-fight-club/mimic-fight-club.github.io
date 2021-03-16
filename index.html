@@ -160,13 +160,13 @@
                             <div class="row">
                                 <div class="col-lg-12">
                                     <label for="partySizeFilter" class="form-label mb-0">Party size</label>
-                                    <select v-model='partyFilters.partySizeFilter' class="form-select" id="partySizeFilter" @change="setUrlPartySize(partyFilters.partySizeFilter)">
+                                    <select v-model='partyFilters.partySizeFilter' class="form-select" id="partySizeFilter" @change="partySizeOnChange(partyFilters.partySizeFilter)">
                                         <option v-for="size in partySize" :value="size">{{size}} Players</option>
                                     </select>
                                 </div>
                                 <div class="col-lg-12">
                                     <label for="partyLevelFilter" class="form-label mb-0">Party level</label>
-                                    <select v-model='partyFilters.partyLevelFilter' class="form-select" id="partyLevelFilter" v-on:click="setEncounterExp" @change="setUrlPartyLevel(partyFilters.partyLevelFilter)">
+                                    <select v-model='partyFilters.partyLevelFilter' class="form-select" id="partyLevelFilter" @change="partyLevelOnChange(partyFilters.partyLevelFilter)">
                                         <option v-for="level in partyLevel" :value="level">Level {{level}}</option>
                                     </select>
                                 </div>
@@ -246,6 +246,11 @@
                     <div class="row">
                         <div class="col-auto">
                             <span>TOTAL XP: {{encounterExp}} XP <b v-if="activeEncounterDifficulty.displayName != ''">(<i :class="'bi-reception-'+activeEncounterDifficulty.id+' encounter-'+activeEncounterDifficulty.displayName.toLowerCase()" class="bi"></i>{{activeEncounterDifficulty.displayName}})</b></span>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-auto">
+                            <span>AWARDED XP PER PLAYER: {{encounterExpFourMan}} XP</span>
                         </div>
                     </div>
                     <div v-if="addedCreatures.length > 0" class="mt-2">
@@ -455,6 +460,7 @@
                 partySize: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
                 partyLevel: [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20],
                 encounterExp: 0,
+                encounterExpFourMan: 0,
                 difficultyStyle: "font-weight: bold;",
                 encounters: [],
                 encounterCounter: 0,
@@ -737,6 +743,8 @@
                     this.addedCreatures.forEach(creature => {
                         this.adjustEncounterExpForCreatureLvl(getCreatureLevel(creature), creature.amount);
                     });
+
+                    this.encounterExpFourMan = (4 / this.partyFilters.partySizeFilter) * this.encounterExp; 
                 },
                 saveCreatures: function(){
                     window.localStorage.addedCreatures = JSON.stringify(this.addedCreatures);
@@ -792,10 +800,18 @@
                     this.mergeSameCreature(creature, index);
                     this.setEncounterExp();
                 },
+                partyLevelOnChange: function(partyLevel){
+                    this.setUrlPartyLevel(partyLevel);
+                    this.setEncounterExp();
+                },
                 setUrlPartyLevel: function(partyLevel){
                     var url = new URL(window.location);
                     url.searchParams.set("partyLevel", partyLevel);
                     window.history.pushState(window.history.state, '', url);
+                },
+                partySizeOnChange: function(partySize){
+                    this.setUrlPartySize(partySize);
+                    this.setEncounterExp();
                 },
                 setUrlPartySize: function(partySize){
                     var url = new URL(window.location);
