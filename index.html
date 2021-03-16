@@ -166,7 +166,7 @@
                                 </div>
                                 <div class="col-lg-12">
                                     <label for="partyLevelFilter" class="form-label mb-0">Party level</label>
-                                    <select v-model='partyFilters.partyLevelFilter' class="form-select" id="partyLevelFilter" v-on:click="setEncounterExp" @change="partyLevelOnChange(partyFilters.partyLevelFilter)">
+                                    <select v-model='partyFilters.partyLevelFilter' class="form-select" id="partyLevelFilter" @change="partyLevelOnChange(partyFilters.partyLevelFilter)">
                                         <option v-for="level in partyLevel" :value="level">Level {{level}}</option>
                                     </select>
                                 </div>
