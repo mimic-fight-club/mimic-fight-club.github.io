@@ -147,7 +147,7 @@
     <div v-cloak id="app">
         <div v-if="activeLink !== false" id="external-link-window" class="bg-dark">
             <div class="d-flex flex-row-reverse">
-                <i class="icon-big bi bi-x-circle" @click="closeLink"></i>
+                <i class="icon-big bi bi-x-circle" @click="closeLink" style="margin-right:12px;"></i>
                 <i @click.prevent="openLinkInPopup(activeLink, $event)" class="icon-big bi bi-box-arrow-up-right"></i>
             </div>
             <iframe align="middle" :src="activeLink" frameborder="0"></iframe>
@@ -261,10 +261,10 @@
                             <input type="text" class="form-control" placeholder="Encounter name" v-model='encounterName'>
                         </div>          
                         <div class="col-4">
-                            <button type="button" class="btn btn-primary w-100" v-on:click="saveEncounter" :disabled="encounterName.length === 0">Save encounter</button>
+                            <button type="button" class="btn btn-primary w-100" v-on:click="saveEncounter" :disabled="encounterName.length === 0">Save</button>
                         </div>              
                     </div>
-                    <div v-if="encounters.length > 0" class="row mt-2">
+                    <div v-if="encounters.length > 0" class="row mt-2 mr-2">
                         <div class="col-8">
                             <select v-model='selectedEncounterId' class="form-select">
                                 <option value="-1">Select encounter</option>
@@ -272,10 +272,11 @@
                             </select>
                         </div>
                         <div class="btn-group col-4" role="group">
-                            <button type="button" class="btn btn-primary" v-on:click="loadEncounter" style="margin-right:3px;">Load encounter</button>
-                            <button type="button" class="btn btn-danger" v-on:click="removeEncounter"><i class="bi bi-x ml-1"></i></button>
+                            <button type="button" class="btn btn-primary" v-on:click="loadEncounter" style="margin-right:3px;">Load</button>
+                            <button type="button" class="btn btn-danger mr-1" v-on:click="removeEncounter"><i class="bi bi-x"></i></button>
                         </div>
                     </div>
+                    <hr>
                 </div>
                 <div class="col-lg-8">
                     <div class="row g-1">
@@ -808,38 +809,53 @@
                     this.setEncounterExp();
                 },
                 partyLevelOnChange: function(partyLevel){
-                    this.setUrlPartyLevel(partyLevel);
+                    this.setPartyLevel(partyLevel);
                     this.setEncounterExp();
                 },
-                setUrlPartyLevel: function(partyLevel){
+                setPartyLevel: function(partyLevel){
+                    window.localStorage.partyLevel = partyLevel;
+
                     var url = new URL(window.location);
-                    url.searchParams.set("partyLevel", partyLevel);
-                    window.history.pushState(window.history.state, '', url);
+                    if(url.searchParams.has("partyLevel")){
+                        url.searchParams.set("partyLevel", partyLevel);
+                        window.history.pushState(window.history.state, '', url);
+                    }
                 },
                 partySizeOnChange: function(partySize){
-                    this.setUrlPartySize(partySize);
+                    this.setPartySize(partySize);
                     this.setEncounterExp();
                 },
-                setUrlPartySize: function(partySize){
+                setPartySize: function(partySize){
+                    window.localStorage.partySize = partySize;
+
                     var url = new URL(window.location);
-                    url.searchParams.set("partySize", partySize);
-                    window.history.pushState(window.history.state, '', url);
+                    if(url.searchParams.has("partyLevel")){
+                        url.searchParams.set("partySize", partySize);
+                        window.history.pushState(window.history.state, '', url);
+                    }
                 },
                 setInitialValues: function(){
                     var url = new URL(window.location);
                     var partyLevel = url.searchParams.get("partyLevel");
                     var partySize = url.searchParams.get("partySize");
+
+                    if(partyLevel == null){
+                        partyLevel = window.localStorage.partyLevel;
+                    }
+                    if(partySize == null){
+                        partySize = window.localStorage.partySize;
+                    }
                     if(partyLevel >= 1 && partyLevel <= 20){
                         this.partyFilters.partyLevelFilter = partyLevel;
                     }
                     else{
-                        this.setUrlPartyLevel(this.partyFilters.partyLevelFilter);
+                        this.setPartyLevel(this.partyFilters.partyLevelFilter);
                     }
                     if(partySize >= 1 && partySize <= 10){
                         this.partyFilters.partySizeFilter = partySize;
                     }
                     else{
-                        this.setUrlPartySize(this.partyFilters.partySizeFilter);
+                        this.setPartySize(this.partyFilters.partySizeFilter);
                     }
                     /*if(window.localStorage.filters)
                         this.filters = JSON.parse(window.localStorage.filters);*/
