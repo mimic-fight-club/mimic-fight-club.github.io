@@ -223,7 +223,7 @@
                                         </div>
                                     </td>
                                     <td>
-                                        <a v-if="creature.data.link !== ''" :href="creature.data.link" @click.prevent="openLink(creature.data.link, $event)">
+                                        <a v-if="creature.data.link !== ''" :href="getCreatureLink(creature)" @click.prevent="openLink(getCreatureLink(creature), $event)">
                                             <span v-if="creature.isWeak">Weak</span>
                                             <span v-if="creature.isElite">Elite</span>
                                             {{creature.data.name}}
@@ -696,6 +696,13 @@
                 },
                 openLink(link, event){
                     this.activeLink = link;
+                },
+                getCreatureLink(creature){                    
+                    if(creature.isWeak)
+                        return creature.data.link + '&Weak=true';
+                    if(creature.isElite)
+                        return creature.data.link + '&Elite=true';
+                    return creature.data.link;
                 },
                 resetFilters: function(event){
                     this.isAutomaticFilterEnabled = false;
