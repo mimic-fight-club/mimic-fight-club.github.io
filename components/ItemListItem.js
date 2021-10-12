@@ -45,4 +45,4 @@ Vue.component('item-list-item', {
             return "https://2e.aonprd.com/" + subItem.link;
         }
     }
-})
+});
