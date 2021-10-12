@@ -776,7 +776,17 @@
                     this.setTotalValue();
                 },
                 addItem: function(itemObject, event){
-                    var addedItem = this.addedItems.filter(item => item.data.id === itemObject.id)[0];
+                    var coins = this.getPriceInCoins(itemObject.price, 1);
+                    var addedItem = this.addedItems.filter((item) => {
+                        if(item.data.id === itemObject.id){
+                            return true;
+                        }
+                        if(item.data.name.includes('Coins')){
+                            var priceInCoins = this.getPriceInCoins(item.data.price, 1);
+                            return this.areCoinsEqual(priceInCoins, coins)
+                        }
+                        return false;
+                    })[0];
                     if(!addedItem){
                         addedItem = {data:itemObject, amount:0, total:{}};
                         this.addedItems.push(addedItem);
@@ -930,6 +940,7 @@
                             coinName = 'Coins (large)';
                             break;                            
                         case 'custom': 
+                            this.checkCustomCoins();
                             coins.pp = this.customCoins.pp;
                             coins.gp = this.customCoins.gp;
                             coins.sp = this.customCoins.sp;
@@ -937,13 +948,35 @@
                             coinName = 'Coins (custom)';
                             break;
                     }
+
                     var item = {
                         name: coinName, 
                         id: this.customItemId++, 
                         level: '—', 
                         price: this.getCoinsAsString(coins)
                     };
+
                     this.addItem(item);
+                },
+                areCoinsEqual: function(coins, otherCoins){
+                    return coins.pp == otherCoins.pp &&
+                            coins.gp == otherCoins.gp &&
+                            coins.sp == otherCoins.sp &&
+                            coins.cp == otherCoins.cp;
+                },
+                checkCustomCoins: function(){
+                    if(isNaN(this.customCoins.pp)){
+                        this.customCoins.pp = 0;
+                    }
+                    if(isNaN(this.customCoins.gp)){
+                        this.customCoins.gp = 0;
+                    }
+                    if(isNaN(this.customCoins.sp)){
+                        this.customCoins.sp = 0;
+                    }
+                    if(isNaN(this.customCoins.cp)){
+                        this.customCoins.cp = 0;
+                    }                    
                 },
                 generateRandomTreasure: function(treasureSize){
                     this.resetTreasure();
