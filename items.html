@@ -1,0 +1,1261 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <!-- Latest compiled and minified CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-BmbxuPwQa2lc/FVzBcNJ7UAyJxM6wuqIj61tLrc4wSX0szH/Ev+nYRRuWlolflfl" crossorigin="anonymous">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.0/font/bootstrap-icons.css">
+    
+    <title>Mimic Fight Club</title>
+    <script src="https://unpkg.com/vue"></script>
+    <script src="https://cdn.jsdelivr.net/npm/lodash@4.17.21/lodash.min.js"></script>
+    
+    <style>
+        .multi-select .multi-select-option-list{
+            z-index: 8001;
+            position:fixed;
+            padding: 5vh 5vw;
+            box-sizing: border-box;
+            background: rgba(0,0,0,0.7);
+            top: 0;left:0; right: 0; bottom: 0;
+            color:#eee;
+            display:flex;
+            flex-direction: column;
+        }
+        .multi-select-option-list .options{
+            background:#666;
+            overflow-y: auto;
+            border-radius: 0 0 5px 5px;
+        }
+        .multi-select-option{margin: 5px;}
+        
+        @media only screen and (min-width: 992px) {
+            .multi-select > div{
+                position:relative;
+                z-index: 8001;
+            }
+            .multi-select .multi-select-option-list .options{
+                max-height: 300px;
+            }
+            .multi-select .multi-select-option-list{
+                position:absolute;
+                top: 100%;left:0; right: 0; bottom:auto;
+                color:#eee;
+                padding: 0;
+                display:block;
+                background: transparent;
+            }
+        }
+        .multi-select .multi-select-option-list.hidden{
+            display:none;
+        }
+        .multi-select .multi-select-option:hover, .multi-select .multi-select-option *:hover{
+            cursor:pointer;
+        }
+        .multi-select-input.form-control{
+            overflow-x: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+        }
+        table.table-dark tbody tr:hover td{
+            background-color: #444;
+        }
+        select.form-select, input.form-control, .multi-select-input.form-control, input.form-control:focus, option, span.input-group-text, .input-group .btn-secondary{
+            background-color: #666;
+            color: #eee;
+            border-color:#444;
+        }
+        input.form-control:focus{
+            background-color: #555;
+        }
+        span.input-group-text, .input-group .btn-secondary{
+            background-color: #444;
+        }
+        input.form-control::placeholder{ /* Chrome, Firefox, Opera, Safari 10.1+ */
+            color: #aaa;
+            opacity: 1;
+        }
+        input.form-control::ms-input-placeholder{ /* Internet Explorer 10-11 */
+            color: #aaa;
+        }
+        input.form-control::-ms-input-placeholder{/* Microsoft Edge */
+            color: #aaa;
+        }
+        .status-button{
+            margin-left: 3px;
+            margin-right: 3px;
+            font: bolder normal normal 16px/1 FontAwesome;
+        }
+        #external-link-window{
+            -webkit-box-shadow: 1px -1px 4px rgba(0,0,0,0.5);
+            box-shadow: 1px -1px 4px 0 rgba(0,0,0,0.5);
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 520px;
+            height: 600px;
+            max-height:100vh;
+            max-width: 100%;
+            z-index:9001;
+        }
+        #external-link-window iframe{
+            width: 500px;
+            max-width: 100%;
+            height:90%;
+            margin: 0 auto;
+            display: block;
+        }
+        #external-link-window .icon-big{
+            font-size: 1.6rem;
+            align-self: sflex-end;
+            padding: 0 5px;
+            cursor: pointer;
+        }
+        [v-cloak] {
+            display: none;
+        }
+        .encounter-trivial{
+            color: #2fbd00
+        }
+        .encounter-low{
+            color: #7bbd00
+        }
+        .encounter-moderate{
+            color: #b4bd00
+        }
+        .encounter-severe{
+            color: #bd7e00
+        }
+        .encounter-extreme{
+            color: #bd0900
+        }
+    </style>
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-GNV4ZBVCVM"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+
+        gtag('config', 'G-GNV4ZBVCVM');
+    </script>
+</head>
+<body class="bg-dark text-light">
+    <div v-cloak id="app">
+        <div v-if="activeLink !== false" id="external-link-window" class="bg-dark">
+            <div class="d-flex flex-row-reverse">
+                <i class="icon-big bi bi-x-circle" @click="closeLink" style="margin-right:12px;"></i>
+                <i @click.prevent="openLinkInPopup(activeLink, $event)" class="icon-big bi bi-box-arrow-up-right"></i>
+            </div>
+            <iframe align="middle" :src="activeLink" frameborder="0"></iframe>
+        </div>
+        <div class="container-fluid">
+            <div class="row pt-4">
+                <div class="col-lg-4">
+                    <div class="row">
+                        <div class="col-12 col-sm-6">
+                            <div class="row">
+                                <div class="col-lg-12">
+                                    <a href="index.html">Go to the Encounter page</a>
+                                </div>
+                                <div class="col-lg-12">
+                                    <label for="partySizeFilter" class="form-label mb-0">Party size</label>
+                                    <select v-model='partyFilters.partySizeFilter' class="form-select" id="partySizeFilter" @change="partySizeOnChange(partyFilters.partySizeFilter)">
+                                        <option v-for="size in partySize" :value="size">{{size}} Players</option>
+                                    </select>
+                                </div>
+                                <div class="col-lg-12">
+                                    <label for="partyLevelFilter" class="form-label mb-0">Party level</label>
+                                    <select v-model='partyFilters.partyLevelFilter' class="form-select" id="partyLevelFilter" @change="partyLevelOnChange(partyFilters.partyLevelFilter)">
+                                        <option v-for="level in partyLevel" :value="level">Level {{level}}</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>  
+                        <div class="col-12 col-sm-6 mb-xs-1 mt-xs-1">
+                            <div class="ms-auto">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" v-model="convertTotalsInPlat">
+                                    <label class="form-check-label" for="flexSwitchCheckDefault">Convert totals to platinum</label>
+                                </div>
+                                <div>
+                                    <span style="font-weight: bold;">Values suggested for level/size</span>
+                                </div>
+                                <div>
+                                    <span>Permanents: </span>
+                                    <span v-for="(nbForLevel, level) in permanentItemToRandomizeByLevel">
+                                        <span v-if="nbForLevel != 0"><span style="font-weight: bold;">{{getTextLevel(level)}}</span>: {{nbForLevel}} </span>
+                                    </span>
+                                </div>
+                                <div>
+                                    <span>Consumables: </span>
+                                    <span v-for="(nbForLevel, level) in consumableItemToRandomizeByLevel">
+                                        <span v-if="nbForLevel != 0"><span style="font-weight: bold;">{{getTextLevel(level)}}</span>: {{nbForLevel}} </span>
+                                    </span>
+                                </div>
+                                <div>
+                                    <span>Currency: 
+                                        <coins-display :coins="partyCurrencyGoal" :convertTotalsInPlat="convertTotalsInPlat" />
+                                    </span>
+                                    <span></span>
+                                </div>
+                                <div>
+                                    <span>Items + currency: 
+                                        <coins-display :coins="totalValueGoalForPartySize" :convertTotalsInPlat="convertTotalsInPlat" />
+                                    </span>
+                                </div>
+                            </div>
+                            <ul class="list-group-flush ps-0">
+                            </ul>
+                        </div>   
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-dark">
+                            <thead>
+                                <tr>
+                                    <th class="col">Count</th>
+                                    <th class="col">Name</th>
+                                    <th class="col">Level</th>
+                                    <th class="col">Value/item</th>
+                                    <th class="col">Total</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr v-for="(item, index) in treasureItems">
+                                    <td class="text-nowrap">
+                                        <button 
+                                        type="button" 
+                                        class="btn btn-success btn-sm add-button"
+                                        v-bind:value="item.data.name"
+                                        v-on:click="addItem(item.data, $event)"><i class="bi bi-plus"></i></button>
+                                        <span style="padding-left:5px; padding-right:5px;">{{item.amount}}</span>                                    
+                                        <button 
+                                        type="button" 
+                                        class="btn btn-secondary btn-sm remove-button"
+                                        v-on:click="removeItem(item, index, $event)"><i class="bi bi-dash"></i></button>
+                                        <button 
+                                        type="button" 
+                                        class="btn btn-danger btn-sm remove-button"
+                                        v-on:click="completelyRemoveItem(item, index, $event)"><i class="bi bi-x"></i></button>
+                                    </td>
+                                    <td>
+                                        <a v-if="item.data.link !== ''" :href="getItemLink(item)" @click.prevent="openLink(getItemLink(item), $event)">
+                                            {{item.data.name}}
+                                        </a>
+                                        <template v-else>
+                                            {{item.data.name}}
+                                        </template>
+                                    </td>
+                                    <td>
+                                        <span>{{item.data.level}}</span>
+                                    </td>
+                                    <td>
+                                        <span>{{item.data.price}}</span>
+                                    </td>
+                                    <td>
+                                        <coins-display :coins="item.total" :convertTotalsInPlat="convertTotalsInPlat" />
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="row">
+                        <div class="col-auto">
+                            <span>TOTAL VALUE: 
+                                <coins-display :coins="totalValue" :convertTotalsInPlat="convertTotalsInPlat" />
+                            </span>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-auto">
+                            <span>AWARDED GP PER PLAYER: 
+                                <coins-display :coins="awardedPerPlayer" :convertTotalsInPlat="convertTotalsInPlat" />
+                            </span>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-auto">
+                            <span>MISSING TOTAL VALUE: 
+                                <coins-display :coins="totalValueMissing" :convertTotalsInPlat="convertTotalsInPlat" />
+                            </span>
+                        </div>
+                    </div>
+                    <hr>       
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" v-model="generateCoinsWithTreasure">
+                        <label class="form-check-label" for="flexSwitchCheckDefault">Generate coins with treasure</label>
+                    </div>
+                    <div class="mt-2">  
+                        <span>Random treasure: </span>
+                        <button type="button" class="btn btn-primary mb-1" v-on:click="generateRandomTreasure('small')">Generate small</button>
+                        <button type="button" class="btn btn-primary mb-1" v-on:click="generateRandomTreasure('medium')">Generate medium</button>
+                        <button type="button" class="btn btn-primary mb-1" v-on:click="generateRandomTreasure('large')">Generate large</button>
+                    </div>          
+                    <hr>   
+                    <div class="mt-2">             
+                        <div class="">
+                            <span>Currency to randomize: </span>
+                            <input class="" type="checkbox" style="margin-left:6px;" v-model="usePlatinumInRandomTreasures">
+                            <label class="form-check-label" style="font-weight: bold;" for="usePlatinumInRandomTreasures">pp</label>
+                            <input class="" type="checkbox" style="margin-left:4px;" v-model="useGoldInRandomTreasures">
+                            <label class="form-check-label" style="font-weight: bold;" for="useGoldInRandomTreasures">gp</label>
+                            <input class="" type="checkbox" style="margin-left:4px;" v-model="useSilverInRandomTreasures">
+                            <label class="form-check-label" style="font-weight: bold;" for="useSilverInRandomTreasures">sp</label>
+                            <input class="" type="checkbox" style="margin-left:4px;" v-model="useCopperInRandomTreasures">
+                            <label class="form-check-label" style="font-weight: bold;" for="useCopperInRandomTreasures">cp</label>
+                        </div>
+                    </div>
+                    <div class="mt-2">
+                        <span>Random coins: </span>
+                        <button type="button" class="btn btn-primary mb-1" v-on:click="addRandomCoinsToTreasure('small')">Add small</button>
+                        <button type="button" class="btn btn-primary mb-1" v-on:click="addRandomCoinsToTreasure('medium')">Add medium</button>
+                        <button type="button" class="btn btn-primary mb-1" v-on:click="addRandomCoinsToTreasure('large')">Add large</button>
+                    </div>
+                    <div style="display:flex;" class="row">
+                        <input name="pp" class="col-1" v-model.number='customCoins.pp' style="background-color: #666; margin-left:12px; margin-top:12px; margin-bottom:12px;">
+                        <label for="pp" class="col-1" style="margin-top:12px; margin-bottom:12px;">pp</label>
+                        <input name="gp" class="col-1" v-model.number='customCoins.gp' style="background-color: #666; margin-top:12px; margin-bottom:12px;">
+                        <label for="gp" class="col-1" style="margin-top:12px; margin-bottom:12px;">gp</label>
+                        <input name="sp" class="col-1" v-model.number='customCoins.sp' style="background-color: #666; margin-top:12px; margin-bottom:12px;">
+                        <label for="sp" class="col-1" style="margin-top:12px; margin-bottom:12px;">sp</label>
+                        <input name="cp" class="col-1" v-model.number='customCoins.cp' style="background-color: #666; margin-top:12px; margin-bottom:12px;">
+                        <label for="cp" class="col-1" style="margin-top:12px; margin-bottom:12px;">cp</label>
+                        <button type="button" class="btn btn-primary mb-1 col-3" v-on:click="addRandomCoinsToTreasure('custom')">Add to treasure</button>
+                    </div>
+                    <hr>
+                    <div v-if="addedItems.length > 0" class="mt-2">
+                        <button type="button" class="btn btn-primary mb-1" v-on:click="resetTreasure">Reset treasure</button>
+                    </div>
+                    <div v-if="addedItems.length > 0" class="mt-2 row">
+                        <div class="col-8">
+                            <input type="text" class="form-control" placeholder="Treasure name" v-model='treasureName'>
+                        </div>          
+                        <div class="col-4">
+                            <button type="button" class="btn btn-primary w-100" v-on:click="saveTreasure" :disabled="treasureName.length === 0">Save</button>
+                        </div>              
+                    </div>
+                    <div v-if="treasures.length > 0" class="row mt-2 mr-2">
+                        <div class="col-8">
+                            <select v-model='selectedTreasureId' class="form-select">
+                                <option value="-1">Select treasure</option>
+                                <option v-for="treasure in treasures" :value="treasure.id">{{treasure.name}}</option>
+                            </select>
+                        </div>
+                        <div class="btn-group col-4" role="group">
+                            <button type="button" class="btn btn-primary" v-on:click="loadTreasure" style="margin-right:3px;">Load</button>
+                            <button type="button" class="btn btn-danger mr-1" v-on:click="removeTreasure"><i class="bi bi-x"></i></button>
+                        </div>
+                    </div>
+                    <hr v-if="treasures.length > 0 || addedItems.length > 0">
+                </div>
+                <div class="col-lg-8">
+                    <div class="row g-1">
+                        <div class="order-1 order-md-2 col-8 col-sm-6 col-md-8 align-self-end">
+                            <div class="w-100">
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="bi bi-search d-md-none"></i> <span class="d-none d-md-inline">Search</span></span>
+                                    <input type="text" class="form-control" placeholder="Item name" v-model='filters.nameFilter'>
+                                </div>
+                            </div>       
+                        </div>                
+                        <div class="order-2 oder-sm-1 order-md-1 col-4 col-sm-3 col-md-2">
+                            <label for="levelMinFilter" class="form-label">Lvl Min</label>
+                            <select v-model='filters.levelMinFilter' class="form-select" id="levelMinFilter">
+                                <option v-for="level in levels" :value="level">{{level}}</option>
+                            </select>
+                        </div>                        
+                        <div class="order-2 oder-sm-1 order-md-1 col-4 col-sm-3 col-md-2">
+                            <label for="levelMaxFilter" class="form-label">Lvl Max</label>
+                            <select v-model='filters.levelMaxFilter' class="form-select" id="levelMaxFilter">
+                                <option v-for="level in levels" :value="level">{{level}}</option>
+                            </select>
+                        </div>
+                        <div class="order-2 col-4 col-md-2">
+                            <label for="traitsFilter" class="form-label">Traits</label>
+                            <multi-select :options="traits" @selected="multiSelectToggle(traits, $event)" @closed="closeFilterMultiSelect(traits)" name="traitsFilter"></multi-select>
+                        </div>
+                        <div class="order-2 col-4 col-sm col-md-2">
+                            <label for="rarityFilter" class="form-label">Rarity</label>
+                            <multi-select :options="rarities" @selected="multiSelectToggle(rarities, $event)" @closed="closeFilterMultiSelect(rarities)"
+                                name="raritiesFilter"></multi-select>
+                        </div>                    
+                        <div class="order-2 col-4 col-sm">
+                            <label for="categoryFilter" class="form-label">Category</label>
+                            <multi-select :options="categories" @selected="multiSelectToggle(categories, $event)"
+                                @closed="closeFilterMultiSelect(categories)" name="categoriesFilter"></multi-select>
+                        </div>                    
+                        <div class="order-2 col-4 col-sm">
+                            <label for="subcategoryFilter" class="form-label">Subcategory</label>
+                            <multi-select :options="subcategories" @selected="multiSelectToggle(subcategories, $event)"
+                                @closed="closeFilterMultiSelect(subcategories)" name="subcategoriesFilter"></multi-select>
+                        </div>                      
+                        <div class="order-1 order-sm-2 col-4 col-sm align-self-end">
+                            <button subcategory="button" class="btn btn-primary w-100" v-on:click="resetFilters">Reset filters</button>
+                        </div>   
+                    </div>
+                    <div class="row">
+                        <div class="col table-responsive">
+                            <table class="table table-dark">
+                                <thead>
+                                    <tr>
+                                        <th scope="col">Add</th>
+                                        <th scope="col">Name</th>
+                                        <th scope="col">Level</th>
+                                        <th scope="col">Rarity</th>
+                                        <th scope="col">Traits</th>
+                                        <th scope="col">Category</th>
+                                        <th scope="col">Subcategory</th>
+                                        <th scope="col">Bulk</th>
+                                        <th scope="col">Price</th>
+                                    </tr>
+                                </thead>
+                                <tbody>                                    
+                                    <template v-for="item in filteredItemList">
+                                        <item-list-item :item="item"
+                                            @add-normal="addItem($event, false, false)"
+                                            @open-link="openLink($event)"
+                                        />
+                                    </template>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src='./itemTable.js'></script>
+    <script src='./components/itemListItem.js'></script>
+    <script src='./components/coinsDisplay.js'></script>
+    <script src='./components/multiSelect.js'></script>
+    <script>    
+        
+        function lowerCaseMatch(search, objectKey){
+            return (el) => {return el[objectKey].toLowerCase() === search.toLowerCase()};
+        };
+        
+        function sortString(a, b){
+            if(a.value < b.value) return -1;
+            if(a.value > b.value) return 1;
+            return 0;
+        }
+        
+        function setDifficultiesBasedOnNumberOfPlayers(partySize, difficulties){
+            difficulties[0].exp = 10*partySize;
+            difficulties[1].exp = 15*partySize;
+            difficulties[2].exp = 20*partySize;
+            difficulties[3].exp = 30*partySize;
+            difficulties[4].exp = 40*partySize;
+        }
+        
+        function getItemLevel(item){
+            return item.data.level;
+        }
+        
+        var getDefaultFilters = function(){
+            return {nameFilter: '', levelMinFilter: 'All', levelMaxFilter: 'All'};
+        }       
+        var getDefaultEncounterDifficulties = function(){
+            return [
+            {id: 0, displayName: "Trivial", exp: 40, isActive: false},
+            {id: 1, displayName: "Low", exp: 60, isActive: false},
+            {id: 2, displayName: "Moderate", exp: 80, isActive: false},
+            {id: 3, displayName: "Severe", exp: 120, isActive: false},
+            {id: 4, displayName: "Extreme", exp: 160, isActive: false}
+            ];
+        }
+        
+        var app = new Vue({
+            el: '#app',
+            data: {
+                customItemId: 0,
+                customItems:[],
+                activeLink: false,
+                itemList: itemList,
+                filters: getDefaultFilters(),
+                partyFilters: { partySizeFilter: 4, partyLevelFilter: 1},
+                rarities: [],
+                categories: [],
+                subcategories: [],
+                traits: [],
+                levels: [],
+                addedItems: [],
+                partySize: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+                partyLevel: [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20],
+                difficultyStyle: "font-weight: bold;",
+                treasures: [],
+                treasureCounter: 0,
+                treasureName: '',
+                selectedTreasureId: -1,
+                permanentItemToRandomizeByLevel: [],
+                consumableItemToRandomizeByLevel: [],
+                partyCurrencyByLevel: [20,40,70,120,200,320,500,720,1000,1400,2000,2800,4000,6000,9000,13000,20000,30000,48000,80000,140000],
+                currencyPerAdditionalPCByLevel: [4,10,18,30,50,80,125,180,250,350,500,700,1000,1500,2250,3250,5000,7500,12000,20000,35000],
+                totalValueGoal: [75,175,300,500,850,1350,2000,2900,4000,5700,8000,11500,16500,25000,36500,54500,82500,128000,208000,355000,490000],
+                totalValueGoalForPartySize: {cp: 0, sp: 0, gp: 0, pp: 0},
+                totalValue: {cp: 0, sp: 0, gp: 0, pp: 0},
+                totalValueMissing: {cp: 0, sp: 0, gp: 0, pp: 0},
+                partyCurrencyGoal: {cp: 0, sp: 0, gp: 0, pp: 0},
+                awardedPerPlayer: {cp: 0, sp: 0, gp: 0, pp: 0},
+                customCoins: {cp: 0, sp: 0, gp: 0, pp: 0},
+                filteredItemList: [],
+                isAutomaticFilterEnabled: true,
+                convertTotalsInPlat: false,
+                usePlatinumInRandomTreasures: true,
+                useGoldInRandomTreasures: true,
+                useSilverInRandomTreasures: true,
+                useCopperInRandomTreasures: true,
+                generateCoinsWithTreasure: true
+            },
+            computed: {
+                rarityFilter: function(){
+                    return this.rarities
+                        .filter((el) => {return el.selected === true})
+                        .map((el) => {return el.value} );
+                },
+                traitsFilter: function () {
+                    return this.traits
+                        .filter((el) => { return el.selected === true })
+                        .map((el) => { return el.value });
+                },
+                categoryFilter: function () {
+                    return this.categories
+                        .filter((el) => { return el.selected === true })
+                        .map((el) => { return el.value });
+                },
+                subcategoryFilter: function () {
+                    return this.subcategories
+                        .filter((el) => { return el.selected === true })
+                        .map((el) => { return el.value });
+                },
+                treasureItems: function(){
+                    return this.addedItems;
+                }
+            },
+            mounted: function(){
+                for(var i = 0; i <= 20; i++){
+                    this.permanentItemToRandomizeByLevel[i] = 0;
+                }
+                for(var i = 0; i <= 20; i++){
+                    this.consumableItemToRandomizeByLevel[i] = 0;
+                }
+
+                this.itemList.forEach((item) => {
+                    let rarity = item.rarity.name;
+                    if(!this.rarities.find(lowerCaseMatch(rarity, "value"))){                        
+                        this.rarities.push({displayName:rarity, value:rarity.toLowerCase(), selected: false});
+                    }
+                });
+                this.rarities.sort(sortString);
+                
+                this.itemList.forEach((item) => {
+                    item.traits.forEach((trait) => {
+                        if(!this.traits.find(lowerCaseMatch(trait.name, "value"))){                        
+                            this.traits.push({displayName:trait.name, value:trait.name.toLowerCase(), selected: false});
+                        }
+                    });
+                });
+                this.traits.sort(sortString);
+                
+                this.itemList.forEach((item) => {
+                    let category = item.category.name;
+                    if(!this.categories.find(lowerCaseMatch(category, "value"))){                        
+                        this.categories.push({displayName:category, value:category.toLowerCase(), selected: false});
+                    }
+                    
+                });
+                this.categories.sort(sortString);
+                
+                this.itemList.forEach((item) => {
+                    let subcategory = item.subcategory.name;
+                    if(!this.subcategories.find(lowerCaseMatch(subcategory, "value"))){                        
+                        this.subcategories.push({displayName:subcategory, value:subcategory.toLowerCase(), selected: false});
+                    }
+                });
+                this.subcategories.sort(sortString);
+                
+                this.itemList.forEach((item) => {
+                    if(!this.levels.includes(item.level)){                        
+                        this.levels.push(item.level);
+                    }
+                });
+                this.levels.sort((a,b) => {
+                    return a-b;
+                });
+                this.levels.unshift('All')
+                this.filterItems();
+
+                this.setInitialValues();
+            },
+            watch:{
+                convertTotalsInPlat: function(newValue, oldValue){
+                    this.setTotalValue();
+
+                    window.localStorage.convertTotalsInPlat = JSON.stringify(this.convertTotalsInPlat);
+                },
+                usePlatinumInRandomTreasures: function(newValue, oldValue){
+                    this.setTotalValue();
+
+                    window.localStorage.usePlatinumInRandomTreasures = JSON.stringify(this.usePlatinumInRandomTreasures);
+                },
+                useGoldInRandomTreasures: function(newValue, oldValue){
+                    this.setTotalValue();
+
+                    window.localStorage.useGoldInRandomTreasures = JSON.stringify(this.useGoldInRandomTreasures);
+                },
+                useSilverInRandomTreasures: function(newValue, oldValue){
+                    this.setTotalValue();
+
+                    window.localStorage.useSilverInRandomTreasures = JSON.stringify(this.useSilverInRandomTreasures);
+                },
+                useCopperInRandomTreasures: function(newValue, oldValue){
+                    this.setTotalValue();
+
+                    window.localStorage.useCopperInRandomTreasures = JSON.stringify(this.useCopperInRandomTreasures);
+                },
+                generateCoinsWithTreasure: function(newValue, oldValue){
+                    this.setTotalValue();
+
+                    window.localStorage.generateCoinsWithTreasure = JSON.stringify(this.generateCoinsWithTreasure);
+                },
+                customItems: {
+                    handler: function(newItems, oldItems){
+                        this.saveItems();
+                    },
+                    deep: true
+                },
+                addedItems: {
+                    handler: function(newItems, oldItems){
+                        this.saveItems();
+                    },
+                    deep: true
+                },
+                filters: {
+                    handler: function(newFilters, oldFilters){
+                        window.localStorage.filters = JSON.stringify(this.filters);
+                    },
+                    deep: true
+                },
+                'filters.nameFilter': function(newValue, oldValue){
+                    this.automaticItemFilter(true);
+                },
+                'filters.levelMinFilter': function(){ this.automaticItemFilter(); },
+                'filters.levelMaxFilter': function(){ this.automaticItemFilter(); },
+                'filters.traitsFilter': function(){ this.automaticItemFilter(); },
+                'filters.subcategoryFilter': function(){ this.automaticItemFilter(); },
+                'filters.rarityFilter': function(){ this.automaticItemFilter(); },
+                'filters.categoryFilter': function(){ this.automaticItemFilter(); },
+                treasures: {
+                    handler: function(newTreasures, oldTreasures){
+                        window.localStorage.treasures = JSON.stringify(this.treasures);
+                    }
+                }
+            },
+            created:function(){
+                //debounces the filtering for text input
+                this.debouncedFilterItemList = _.debounce(this.filterItems, 200);
+                this.automaticItemFilter = (debounced = false) => {
+                    if(this.isAutomaticFilterEnabled === false) return;
+                    if(debounced === true){
+                        this.debouncedFilterItemList();
+                    }else{
+                        this.filterItems();
+                    }
+                }
+            },
+            methods:{
+                closeFilterMultiSelect: function(filter){
+                    this.filterItems();
+                    filter.sort((a,b) => {
+                        if (a.selected === b.selected ){
+                            if (a.value < b.value) return -1;
+                            if (a.value > b.value) return 1;
+                            return 0;
+                        }else if(a.selected === true){
+                            return -1;
+                        }else{
+                            return 1;
+                        }
+                    });
+                },
+                multiSelectToggle: function(options, index){
+                    this.$set(options[index], 'selected', !options[index].selected);
+                },
+                getMinLevelFromStr: function(level){
+                    if(level == '—' || level == 'All'){
+                        return 0;
+                    }
+                    return parseInt(level);
+                },
+                getMaxLevelFromStr: function(level){
+                    if(level == '—'){
+                        return 0;
+                    }
+                    if(level == 'All'){
+                        return 20;
+                    }
+                    return parseInt(level);
+                },
+                filterItems: function(){
+                    var defaultFilters = getDefaultFilters();
+                    var items = this.itemList.filter((item) => {
+                        var isInTheList = true;
+
+                        if (this.filters.levelMinFilter != defaultFilters.levelMinFilter && this.getMinLevelFromStr(item.level) < this.getMinLevelFromStr(this.filters.levelMinFilter)) {
+                            isInTheList = false;
+                        }
+                        if (this.filters.levelMaxFilter != defaultFilters.levelMaxFilter && this.getMaxLevelFromStr(item.level) > this.getMaxLevelFromStr(this.filters.levelMaxFilter)) {
+                            isInTheList = false;
+                        }
+                        if(this.filters.nameFilter !== ""){
+                            if(!item.name.toLowerCase().includes(this.filters.nameFilter.toLowerCase())){
+                                isInTheList = false;
+                            }
+                        }
+
+                        if (this.rarityFilter.length > 0 && !this.rarityFilter.find((el) => {return el === item.rarity.name.toLowerCase();})) {
+                            isInTheList = false;
+                        };
+                        if (this.categoryFilter.length > 0 && !this.categoryFilter.find((el) => { return el === item.category.name.toLowerCase(); })) {
+                            isInTheList = false;
+                        };
+                        if (this.traitsFilter.length > 0 && !this.traitsFilter.find((el) => { return item.traits.find(trait => trait.name.toLowerCase() === el); })) {
+                            isInTheList = false;
+                        };
+                        if (this.subcategoryFilter.length > 0 && !this.subcategoryFilter.find((el) => { return el === item.subcategory.name.toLowerCase(); })) {
+                            isInTheList = false;
+                        };
+                       return isInTheList;
+                    });
+                    this.filteredItemList = items.sort((a, b) => {
+                        var levelA = a.level === "—" ? 0 : parseInt(a.level);
+                        var levelB = b.level === "—" ? 0 : parseInt(b.level);
+                        if (levelA > levelB) return 1;
+                        if (levelA < levelB) return -1;
+
+                        if (a.name > b.name) return 1;
+                        if (a.name < b.name) return -1;
+
+                        return 0;
+                    });
+                },
+                openLinkInPopup(link, event){
+                    window.open(link);
+                },
+                closeLink(event){
+                    this.activeLink = false;
+                },
+                openLink(link, event){
+                    this.activeLink = link;
+                },
+                getItemLink(item){                    
+                    return item.data.link;
+                },
+                resetFilters: function(event){
+                    this.isAutomaticFilterEnabled = false;
+                    
+                    this.filters = getDefaultFilters();
+                    this.rarities.map((el) => el.selected = false);
+                    this.traits.map((el) => el.selected = false);
+                    this.subcategories.map((el) => el.selected = false);
+                    this.categories.map((el) => el.selected = false);
+
+                    this.filters.levelMinFilter = (parseInt(this.partyFilters.partyLevelFilter) -1) + '';
+                    this.filters.levelMaxFilter = (parseInt(this.partyFilters.partyLevelFilter) +1) + '';
+
+                    this.$nextTick(() => {
+                        this.isAutomaticFilterEnabled = true;
+                    });
+                    this.filterItems();
+                },
+                resetTreasure: function(event){
+                    this.addedItems = [];
+                    this.setTotalValue();
+                },
+                addItem: function(itemObject, event){
+                    var addedItem = this.addedItems.filter(item => item.data.id === itemObject.id)[0];
+                    if(!addedItem){
+                        addedItem = {data:itemObject, amount:0, total:{}};
+                        this.addedItems.push(addedItem);
+                    }
+                    addedItem.amount++;
+                    this.addItemValue(itemObject, 1);
+                    var priceInCoins = this.getPriceInCoins(itemObject.price, addedItem.amount);
+                    addedItem.total = this.simplifyCoins(priceInCoins);
+                },
+                removeItem: function(itemObject, index, event){
+                    this.addedItems[index].amount--;
+                    if(this.addedItems[index].amount <= 0){
+                        this.addedItems.splice(index, 1);
+                    }                    
+                    this.addItemValue(itemObject.data, -1);
+                },
+                setTotalValue: function(){
+                    this.totalValue = this.getEmptyCoins();
+                    this.awardedPerPlayer = this.getEmptyCoins();
+                    var totalValueMissingInGold = this.getEmptyCoins();
+                    totalValueMissingInGold.gp = this.totalValueGoal[this.partyFilters.partyLevelFilter] + this.currencyPerAdditionalPCByLevel[this.partyFilters.partyLevelFilter]*(this.partyFilters.partySizeFilter-4);
+                    this.totalValueMissing = this.simplifyCoins(totalValueMissingInGold);
+
+                    this.addedItems.forEach((item) => {
+                        this.addItemValue(item.data, item.amount);
+                        item.total = this.simplifyCoins(item.total);
+                    });
+                    this.setTotalValueGoalForPartySize();
+                },
+                getEmptyCoins: function(){
+                    return {cp:0, sp:0, gp:0, pp:0};
+                },
+                addItemValue: function(item, multiplier){
+                    var priceInCoins = this.getPriceInCoins(item.price, multiplier);                    
+                    this.totalValue = this.addCoins(priceInCoins, this.totalValue);
+
+                    var totalValueInCPs = this.getCoinValueInCPs(this.totalValue);
+                    totalValueInCPs.cp = Math.floor(totalValueInCPs.cp / this.partyFilters.partySizeFilter);
+                    this.awardedPerPlayer = this.simplifyCoins(totalValueInCPs);
+                    
+                    this.totalValueMissing = {
+                        cp: 0,
+                        sp: 0,
+                        gp: this.totalValueGoal[this.partyFilters.partyLevelFilter] + this.currencyPerAdditionalPCByLevel[this.partyFilters.partyLevelFilter]*(this.partyFilters.partySizeFilter-4),
+                        pp: 0
+                    };
+                    
+                    this.totalValueMissing = this.substractCoins(this.totalValueMissing, this.totalValue);
+                },
+                addCoins: function(coins, coinsToAdd){
+                    var coinsInCPs = this.getCoinValueInCPs(coins);
+                    var coinsToAddInCPs = this.getCoinValueInCPs(coinsToAdd);
+
+                    var result = {
+                        cp: coinsInCPs.cp + coinsToAddInCPs.cp,
+                        sp: 0,
+                        gp: 0,
+                        pp: 0
+                    };
+                    return this.simplifyCoins(result);
+                },
+                getPriceInCoins: function(price, multiplier){
+                    var coins = this.getEmptyCoins();
+                    var results = price.split(/(\d,?\d*\s[csgp]p)[,]?\s?/);
+                    results.forEach((result, index) => {
+                        result = result.replace(',', '');
+                        if(result.includes('cp')){
+                            coins.cp += parseInt(result) * multiplier;
+                        }
+                        else if(result.includes('sp')){
+                            coins.sp += parseInt(result) * multiplier;
+                        }
+                        else if(result.includes('gp')){
+                            coins.gp += parseInt(result) * multiplier;
+                        }
+                        else if(result.includes('pp')){
+                            coins.pp += parseInt(result) * multiplier;
+                        }
+                    });
+                    return coins;
+                },
+                substractCoins: function(coinsTotal, coinsToSubstract){
+                    var coinsTotalInCPs = this.getCoinValueInCPs(coinsTotal);
+                    var coinsToSubstractInCPs = this.getCoinValueInCPs(coinsToSubstract);
+
+                    var resultCoins = {cp: coinsTotalInCPs.cp - coinsToSubstractInCPs.cp, sp:0, gp:0, pp:0};
+
+                    if(resultCoins.cp < 0){
+                        resultCoins.cp = 0;
+                    }
+
+                    return this.simplifyCoins(resultCoins);
+                },
+                getCoinValueInCPs: function(currencies){
+                    return {
+                        cp: currencies.cp + currencies.sp * 10 + currencies.gp * 100 + currencies.pp * 1000, 
+                        sp: 0, 
+                        gp: 0, 
+                        pp: 0};
+                },
+                simplifyCoins: function(currencies){
+                    if(currencies.gp < 0){
+                        currencies.gp += 10;
+                        currencies.pp--;
+                    } 
+                    if(currencies.cp < 0){
+                        currencies.cp += 10;
+                        currencies.sp--;
+                    }                    
+                    if(currencies.sp < 0){
+                        currencies.sp += 10;
+                        currencies.gp--;
+                    }
+
+                    if(currencies.cp >= 10){
+                        currencies.sp += Math.floor(currencies.cp / 10);
+                        currencies.cp = currencies.cp % 10;
+                    }
+                    if(currencies.sp >= 10){
+                        currencies.gp += Math.floor(currencies.sp / 10);
+                        currencies.sp = currencies.sp % 10;
+                    }
+                    if(!this.convertTotalsInPlat && currencies.pp > 0){
+                        currencies.gp += currencies.pp * 10;
+                        currencies.pp = 0;
+                    }
+                    if(this.convertTotalsInPlat && currencies.gp >= 10){
+                        currencies.pp += Math.floor(currencies.gp / 10);
+                        currencies.gp = currencies.gp % 10;
+                    }
+                    return currencies;
+                },
+                addRandomCoinsToTreasure: function(treasureSize){
+                    var coins = this.getEmptyCoins();
+                    var totalInGold = this.partyCurrencyGoal.gp + this.partyCurrencyGoal.pp*10;
+                    var coinName = '';
+                    switch(treasureSize){
+                        case 'small':
+                            totalInGold = Math.floor(totalInGold/ 4);
+                            coins = this.getRandomCoinsForTreasure(totalInGold, coins);
+                            coinName = 'Coins (small)';
+                            break;
+                        case 'medium':
+                            totalInGold = Math.floor(totalInGold / 2);
+                            coins = this.getRandomCoinsForTreasure(totalInGold, coins);
+                            coinName = 'Coins (medium)';
+                            break;
+                        case 'large':
+                            totalInGold = totalInGold
+                            coins = this.getRandomCoinsForTreasure(totalInGold, coins);
+                            coinName = 'Coins (large)';
+                            break;                            
+                        case 'custom': 
+                            coins.pp = this.customCoins.pp;
+                            coins.gp = this.customCoins.gp;
+                            coins.sp = this.customCoins.sp;
+                            coins.cp = this.customCoins.cp;
+                            coinName = 'Coins (custom)';
+                            break;
+                    }
+                    var item = {
+                        name: coinName, 
+                        id: this.customItemId++, 
+                        level: '—', 
+                        price: this.getCoinsAsString(coins)
+                    };
+                    this.addItem(item);
+                },
+                generateRandomTreasure: function(treasureSize){
+                    this.resetTreasure();
+                    var itemsToAdd = [];
+                    var itemsToRemovePerLevel = 0;
+                    switch(treasureSize){
+                        case 'small':
+                            itemsToRemovePerLevel = 2;
+                            break;
+                        case 'medium': 
+                            itemsToRemovePerLevel = 1;
+                            break;
+                        case 'large':
+                            itemsToRemovePerLevel = 0;
+                            break;
+                    }
+                    this.permanentItemToRandomizeByLevel.forEach((amount, level) => {
+                        var itemsToRemove = itemsToRemovePerLevel;
+                        if(amount > 0 && amount - itemsToRemove <= 0){
+                            itemsToRemove = amount - Math.round(Math.random());
+                        }
+                        if(amount - itemsToRemove < 0){
+                            itemsToRemove = amount;
+                        }
+                        for(var i = 0; i < amount - itemsToRemove; i++){
+                            var item = this.getRandomItemByLevel(level, false);
+                            if(!!item){
+                                itemsToAdd.push(item);
+                            }
+                        }
+                    });
+                    this.consumableItemToRandomizeByLevel.forEach((amount, level) => {
+                        var itemsToRemove = itemsToRemovePerLevel;
+                        if(amount > 0 && amount - itemsToRemove <= 0){
+                            itemsToRemove = amount - Math.round(Math.random());
+                        }
+                        if(amount - itemsToRemove < 0){
+                            itemsToRemove = 0;
+                        }
+                        for(var i = 0; i < amount - itemsToRemove; i++){
+                            var item = this.getRandomItemByLevel(level, true);
+                            if(!!item){
+                                itemsToAdd.push(item);
+                            }
+                        }
+                    });
+                    itemsToAdd.forEach((item) => {
+                        this.addItem(item);
+                    });
+                    if(this.generateCoinsWithTreasure){
+                        this.addRandomCoinsToTreasure(treasureSize);
+                    }
+                },
+                getRandomItemByLevel: function(level, isConsumable){
+                    var itemsByLevel = itemList.filter((item) => item.level == level);
+                    if(isConsumable){
+                        itemsByLevel = itemsByLevel.filter((item) => {
+                            var isConsumable = false;
+                            item.traits.forEach((trait) => {
+                                if(trait.name.toLowerCase() == 'consumable'){
+                                    isConsumable = true;
+                                }
+                            });
+                            if(item.category.name.toLowerCase() == 'consumables'){
+                                isConsumable = true;
+                            }
+                            return isConsumable;
+                        });
+                    }
+                    else{
+                        itemsByLevel = itemsByLevel.filter((item) => {
+                            var isConsumable = false;
+                            item.traits.forEach((trait) => {
+                                if(trait.name.toLowerCase() == 'consumable'){
+                                    isConsumable = true;
+                                }
+                            });
+                            if(item.category.name.toLowerCase() == 'consumables'){
+                                isConsumable = true;
+                            }
+                            return !isConsumable;
+                        });
+                    }
+
+                    if(!itemsByLevel){
+                        itemsByLevel = [];
+                    }
+                    var maxValue = itemsByLevel.length > 0 ? itemsByLevel.length-1 : 0;
+                    return itemsByLevel[Math.floor(Math.random() * maxValue)];
+                },
+                getRandomCoinsForTreasure: function(totalGoalInGold, coins){
+                    var ppInGold = 0;
+                    if(this.usePlatinumInRandomTreasures){
+                        var quarterOfGold = Math.floor(totalGoalInGold / 4);
+                        var threeQuarters = totalGoalInGold - quarterOfGold;
+                        ppInGold = Math.floor(Math.random() * threeQuarters) + quarterOfGold;
+                        coins.pp = Math.floor(ppInGold / 10);
+                        totalGoalInGold = totalGoalInGold - (coins.pp*10);
+                    }
+
+                    if(this.useGoldInRandomTreasures){
+                        var quarterOfGold = Math.floor(totalGoalInGold / 4);
+                        var threeQuarters = totalGoalInGold - quarterOfGold;
+                        coins.gp = Math.floor(Math.random() * threeQuarters) + quarterOfGold;
+                        totalGoalInGold = totalGoalInGold - coins.gp;
+                    }
+
+                    if(this.useSilverInRandomTreasures){
+                        var spInGold = Math.floor(Math.random() * totalGoalInGold);
+                        totalGoalInGold = totalGoalInGold - spInGold;
+                        coins.sp = spInGold * 10;
+                    }
+
+                    if(this.useCopperInRandomTreasures){
+                        coins.cp = totalGoalInGold*100;
+                    }
+
+                    return coins;
+                },
+                getCoinsAsString: function(coins){
+                    var text = '';
+                    if(coins.pp != 0){
+                        text += coins.pp + ' pp, ';
+                    }
+                    if(coins.gp != 0){
+                        text += coins.gp + ' gp, ';
+                    }
+                    if(coins.sp != 0){
+                        text += coins.sp + ' sp, ';
+                    }
+                    if(coins.cp != 0){
+                        text += coins.cp + ' cp, ';
+                    }
+                    return text.substring(0, text.length-2);
+                },
+                completelyRemoveItem: function(itemObject, index, event){
+                    this.addedItems.splice(index, 1);
+                    this.setTotalValue(); 
+                },
+                removeCustomItem: function(item, index, $event){
+                    this.customItems.splice(index, 1);
+                },
+                saveItems: function(){
+                    window.localStorage.addedItems = JSON.stringify(this.addedItems);
+                    window.localStorage.customItems = JSON.stringify(this.customItems);
+                    window.localStorage.customItemId = JSON.stringify(this.customItemId);
+                },
+                mergeSameItem: function(itemObject, index){
+                    var sameItem = this.addedItems.filter(item => item != itemObject && item.data.id == itemObject.data.id)[0];
+                    if(sameItem){
+                        sameItem.amount += itemObject.amount;
+                        this.addedItems.splice(index, 1);
+                    }
+                },
+                partyLevelOnChange: function(partyLevel){
+                    this.setPartyLevel(partyLevel);
+                },
+                setPartyLevel: function(partyLevel){
+                    window.localStorage.partyLevel = partyLevel;
+
+                    var url = new URL(window.location);
+                    if(url.searchParams.has("partyLevel")){
+                        url.searchParams.set("partyLevel", partyLevel);
+                        window.history.pushState(window.history.state, '', url);
+                    }
+                    var nbPartyLevel = parseInt(partyLevel);
+                    for(var i = 0; i < 20; i++){
+                        if(nbPartyLevel > 0 && nbPartyLevel == i){ 
+                            this.permanentItemToRandomizeByLevel[i] = 2; 
+                        }
+                        else if(nbPartyLevel+1 == i){ 
+                            this.permanentItemToRandomizeByLevel[i] = 2; 
+                        }
+                        else{ 
+                            this.permanentItemToRandomizeByLevel[i] = 0; 
+                        }
+                    }
+                    for(var i = 0; i < 20; i++){
+                        if(nbPartyLevel == 1 && i == 1){
+                            this.consumableItemToRandomizeByLevel[i] = 3; 
+                        }
+                        else if(nbPartyLevel > 1 && nbPartyLevel-1 == i){ 
+                            this.consumableItemToRandomizeByLevel[i] = 2; 
+                        }
+                        else if(nbPartyLevel > 1 && nbPartyLevel == i){ 
+                            this.consumableItemToRandomizeByLevel[i] = 2; 
+                        }
+                        else if(nbPartyLevel+1 == i){ 
+                            this.consumableItemToRandomizeByLevel[i] = 2; 
+                        }
+                        else{ 
+                            this.consumableItemToRandomizeByLevel[i] = 0; 
+                        }
+                    }
+                    this.setTotalValueGoalForPartySize();
+                    
+                    this.filters.levelMinFilter = '' + (nbPartyLevel-1);
+                    this.filters.levelMaxFilter = '' + (nbPartyLevel+1);
+                },
+                setTotalValueGoalForPartySize: function(){
+                    var totalValueGoalForPartySizeInGold = this.totalValueGoal[this.partyFilters.partyLevelFilter] + this.currencyPerAdditionalPCByLevel[this.partyFilters.partyLevelFilter]*(this.partyFilters.partySizeFilter-4);
+                    var totalValueGoalForPartySizeInCoins = {cp:0,sp:0,gp:totalValueGoalForPartySizeInGold,pp:0};
+                    this.totalValueGoalForPartySize = this.simplifyCoins(totalValueGoalForPartySizeInCoins);
+
+                    var partyCurrencyGoalInCoins = this.getEmptyCoins();
+                    partyCurrencyGoalInCoins.gp = this.partyCurrencyByLevel[this.partyFilters.partyLevelFilter] + this.currencyPerAdditionalPCByLevel[this.partyFilters.partyLevelFilter]*(this.partyFilters.partySizeFilter-4);
+                    this.partyCurrencyGoal = this.simplifyCoins(partyCurrencyGoalInCoins);
+                },
+                partySizeOnChange: function(partySize){
+                    this.setPartySize(partySize);
+                },
+                setPartySize: function(partySize){
+                    window.localStorage.partySize = partySize;
+
+                    var url = new URL(window.location);
+                    if(url.searchParams.has("partyLevel")){
+                        url.searchParams.set("partySize", partySize);
+                        window.history.pushState(window.history.state, '', url);
+                    }
+                    this.setTotalValueGoalForPartySize();
+                },
+                getTextLevel: function(level){
+                    var text = level;
+                    var suffix = '';
+                    switch(level){
+                        case 1: suffix = 'st'; break;
+                        case 2: suffix = 'nd'; break;
+                        case 3: suffix = 'rd'; break;
+                        default: suffix = 'th'; break;
+                    }
+                    return text + suffix;
+                },
+                setInitialValues: function(){
+                    var url = new URL(window.location);
+                    var partyLevel = url.searchParams.get("partyLevel");
+                    var partySize = url.searchParams.get("partySize");
+
+                    if(partyLevel == null){
+                        partyLevel = window.localStorage.partyLevel;
+                    }
+                    if(partySize == null){
+                        partySize = window.localStorage.partySize;
+                    }
+                    if(partyLevel >= 1 && partyLevel <= 20){
+                        this.partyFilters.partyLevelFilter = partyLevel;
+                    }
+                    
+                    this.setPartyLevel(this.partyFilters.partyLevelFilter);
+                    
+                    if(partySize >= 1 && partySize <= 10){
+                        this.partyFilters.partySizeFilter = partySize;
+                    }
+                    else{
+                        this.setPartySize(this.partyFilters.partySizeFilter);
+                    }
+
+                    if(window.localStorage.addedItems)
+                        this.addedItems = JSON.parse(window.localStorage.addedItems);
+                    if(window.localStorage.customItems)
+                        this.customItems = JSON.parse(window.localStorage.customItems);
+                    if(window.localStorage.customItemId)
+                        this.customItemId = JSON.parse(window.localStorage.customItemId);
+                    if(window.localStorage.treasures){
+                        this.treasures = JSON.parse(window.localStorage.treasures);
+                        this.treasures.forEach((treasure, index) => {
+                            treasure.id = index;
+                        });
+                        this.treasureCounter = this.treasures.length;
+                    }
+                    if(window.localStorage.convertTotalsInPlat)
+                        this.convertTotalsInPlat = JSON.parse(window.localStorage.convertTotalsInPlat);
+                    if(window.localStorage.usePlatinumInRandomTreasures)
+                        this.usePlatinumInRandomTreasures = JSON.parse(window.localStorage.usePlatinumInRandomTreasures);
+                    if(window.localStorage.useGoldInRandomTreasures)
+                        this.useGoldInRandomTreasures = JSON.parse(window.localStorage.useGoldInRandomTreasures);
+                    if(window.localStorage.useSilverInRandomTreasures)
+                        this.useSilverInRandomTreasures = JSON.parse(window.localStorage.useSilverInRandomTreasures);
+                    if(window.localStorage.useCopperInRandomTreasures)
+                        this.useCopperInRandomTreasures = JSON.parse(window.localStorage.useCopperInRandomTreasures);
+                    if(window.localStorage.generateCoinsWithTreasure)
+                        this.generateCoinsWithTreasure = JSON.parse(window.localStorage.generateCoinsWithTreasure);
+
+                    this.setTotalValue();
+                },
+                saveTreasure: function(){
+                    this.treasures.push({
+                        name: this.treasureName, 
+                        stringifyItems: JSON.stringify(this.addedItems),
+                        numberOfItems: this.addedItems.length,
+                        id: this.treasureCounter
+                    });
+                    this.treasureCounter++;
+                    this.treasureName = '';
+                },
+                loadTreasure: function(){
+                    var treasure = this.treasures.filter(treasure => treasure.id === this.selectedTreasureId)[0];
+                    if(treasure){
+                        this.addedItems = JSON.parse(treasure.stringifyItems);
+                    }
+                    this.setTotalValue();
+                },
+                removeTreasure: function(){
+                    var index = this.treasures.findIndex(treasure => treasure.id === this.selectedTreasureId);
+                    if(index != -1){
+                        this.treasures.splice(index, 1);
+                    }
+                    this.selectedTreasureId = -1;
+                }
+            }
+        })
+    </script>
+    <!-- bootstrap - Latest compiled and minified JavaScript -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/js/bootstrap.bundle.min.js" integrity="sha384-b5kHyXgcpbZJO/tY9Ul7kGkf1S0CWuKcCD38l8YkeH8z8QjE0GmW1gYU5S9FOnJ0" crossorigin="anonymous"></script>
+</body>
+</html>
