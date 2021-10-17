@@ -132,6 +132,47 @@
         .encounter-extreme{
             color: #bd0900
         }
+        
+        .collapsible {
+            color: #aaa;
+            cursor: pointer;
+            padding: 6px;
+            width: 100%;
+            border: none;
+            text-align: left;
+            outline: none;
+            font-size: 15px;
+        }
+
+        .collapsible:hover {
+            background-color: #444;
+            color: black;
+        }
+
+        .content {
+            padding: 0 12px;
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.2s ease-out;
+        }
+
+        .content.active{
+            margin-top: 10px;
+        }
+
+        .coin-input{
+            background-color: #666; 
+            margin-left:12px; 
+            margin-top:12px; 
+            margin-bottom:12px; 
+            padding-left:2px; 
+            padding-right:2px;
+        }
+        .coin-label{
+            margin-top:12px; 
+            padding-left:2px; 
+            padding-top:6px;
+        }
     </style>
     <!-- Global site tag (gtag.js) - Google Analytics -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-GNV4ZBVCVM"></script>
@@ -212,6 +253,107 @@
                             </ul>
                         </div>   
                     </div>
+                    <hr style="margin-top: 2px; margin-bottom: 2px;">   
+                    <div class="collapsible">
+                        <span>> Show save and load options</span>
+                    </div>    
+                    <div class="content">   
+                        <div class="row">
+                            <div class="col-8">
+                                <input type="text" class="form-control" placeholder="Treasure name" v-model='treasureName'>
+                            </div>          
+                            <div class="col-4">
+                                <button type="button" class="btn btn-primary w-100" v-on:click="saveTreasure" :disabled="treasureName.length === 0">Save</button>
+                            </div>              
+                        </div>
+                        <div class="row mt-2 mr-2">
+                            <div class="col-8">
+                                <select v-model='selectedTreasureId' class="form-select">
+                                    <option value="-1">Select treasure</option>
+                                    <option v-for="treasure in treasures" :value="treasure.id">{{treasure.name}}</option>
+                                </select>
+                            </div>
+                            <div class="btn-group col-4 mb-2" role="group">
+                                <button type="button" class="btn btn-primary" v-on:click="loadTreasure" style="margin-right:3px;">Load</button>
+                                <button type="button" class="btn btn-danger mr-1" v-on:click="removeTreasure"><i class="bi bi-x"></i></button>
+                            </div>
+                        </div>  
+                        <hr>
+                    </div>   
+                    <div class="collapsible">
+                        <span>> Show treasure creation options</span>
+                    </div>    
+                    <div class="content">
+                        <div class="mt-2">             
+                            <div class="">
+                                <span>Currency to randomize: </span>
+                                <input class="" type="checkbox" style="margin-left:6px;" v-model="usePlatinumInRandomTreasures">
+                                <label class="form-check-label" style="font-weight: bold;" for="usePlatinumInRandomTreasures">pp</label>
+                                <input class="" type="checkbox" style="margin-left:4px;" v-model="useGoldInRandomTreasures">
+                                <label class="form-check-label" style="font-weight: bold;" for="useGoldInRandomTreasures">gp</label>
+                                <input class="" type="checkbox" style="margin-left:4px;" v-model="useSilverInRandomTreasures">
+                                <label class="form-check-label" style="font-weight: bold;" for="useSilverInRandomTreasures">sp</label>
+                                <input class="" type="checkbox" style="margin-left:4px;" v-model="useCopperInRandomTreasures">
+                                <label class="form-check-label" style="font-weight: bold;" for="useCopperInRandomTreasures">cp</label>
+                            </div>
+                        </div>
+                        <div class="mt-2">
+                            <span>Add random coins: </span>
+                            <button type="button" class="btn btn-primary mb-1" v-on:click="addRandomCoinsToTreasure('small')">Small</button>
+                            <button type="button" class="btn btn-primary mb-1" v-on:click="addRandomCoinsToTreasure('medium')">Medium</button>
+                            <button type="button" class="btn btn-primary mb-1" v-on:click="addRandomCoinsToTreasure('large')">Large</button>
+                        </div>
+                        <div style="display:flex;" class="row">
+                            <input name="pp" class="col-1 coin-input" type="number" v-model.number='customCoins.pp'>
+                            <label for="pp" class="col-1 coin-label">pp</label>
+                            <input name="gp" class="col-1 coin-input" type="number" v-model.number='customCoins.gp'>
+                            <label for="gp" class="col-1 coin-label">gp</label>
+                            <input name="sp" class="col-1 coin-input" type="number" v-model.number='customCoins.sp'>
+                            <label for="sp" class="col-1 coin-label">sp</label>
+                            <input name="cp" class="col-1 coin-input" type="number" v-model.number='customCoins.cp'>
+                            <label for="cp" class="col-1 coin-label">cp</label>
+                            <button type="button" class="btn btn-primary mb-1 col-3" v-on:click="addRandomCoinsToTreasure('custom')">Add to treasure</button>
+                        </div>                      
+                        <hr>    
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" v-model="generateCoinsWithTreasure">
+                            <label class="form-check-label" for="flexSwitchCheckDefault">Generate coins with treasure</label>
+                        </div>
+                        <div class="mt-2">  
+                            <span>Generate random treasure: </span>
+                            <button type="button" class="btn btn-primary mb-1" v-on:click="generateRandomTreasure('small')">Small</button>
+                            <button type="button" class="btn btn-primary mb-1" v-on:click="generateRandomTreasure('medium')">Medium</button>
+                            <button type="button" class="btn btn-primary mb-1" v-on:click="generateRandomTreasure('large')">Large</button>
+                        </div>    
+                        <div class="mt-2 mb-2">  
+                            <span>Random items using filters: </span>
+                            <button type="button" class="btn btn-primary mb-1" v-on:click="generateSingleItem()">Add single item</button>
+                        </div>    
+                    </div>
+                    <hr style="margin-top:4px;">  
+                    <div class="col-12">
+                        <div>
+                            <div>
+                                <span>TOTAL VALUE: 
+                                    <coins-display :coins="totalValue" :convertTotalsInPlat="convertTotalsInPlat" />
+                                </span>
+                            </div>
+                            <div v-if="addedItems.length > 0">
+                                <button type="button" class="btn btn-primary mb-1" style="float:right;" v-on:click="resetTreasure">Reset treasure</button>
+                            </div>
+                            <div>
+                                <span>AWARDED GP PER PLAYER: 
+                                    <coins-display :coins="awardedPerPlayer" :convertTotalsInPlat="convertTotalsInPlat" />
+                                </span>
+                            </div>
+                            <div>
+                                <span>MISSING TOTAL VALUE: 
+                                    <coins-display :coins="totalValueMissing" :convertTotalsInPlat="convertTotalsInPlat" />
+                                </span>
+                            </div>
+                        </div>
+                    </div>        
+                    <div></div>          
                     <div class="table-responsive">
                         <table class="table table-dark">
                             <thead>
@@ -242,7 +384,7 @@
                                         v-on:click="completelyRemoveItem(item, index, $event)"><i class="bi bi-x"></i></button>
                                     </td>
                                     <td>
-                                        <a v-if="item.data.link !== ''" :href="getItemLink(item)" @click.prevent="openLink(getItemLink(item), $event)">
+                                        <a v-if="item.data.link !== ''" :href="getItemLink(item)" @click.prevent.exact="openLink(getItemLink(item), $event)" v-on:click.ctrl.exact="addFilterFromLink([item.data.name, 'name'])">
                                             {{item.data.name}}
                                         </a>
                                         <template v-else>
@@ -250,7 +392,7 @@
                                         </template>
                                     </td>
                                     <td>
-                                        <span>{{item.data.level}}</span>
+                                        <span v-on:click.ctrl.exact="addFilterFromLink([item.data.level, 'level'])">{{item.data.level}}</span>
                                     </td>
                                     <td>
                                         <span>{{item.data.price}}</span>
@@ -262,94 +404,7 @@
                             </tbody>
                         </table>
                     </div>
-                    <div class="row">
-                        <div class="col-auto">
-                            <span>TOTAL VALUE: 
-                                <coins-display :coins="totalValue" :convertTotalsInPlat="convertTotalsInPlat" />
-                            </span>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-auto">
-                            <span>AWARDED GP PER PLAYER: 
-                                <coins-display :coins="awardedPerPlayer" :convertTotalsInPlat="convertTotalsInPlat" />
-                            </span>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-auto">
-                            <span>MISSING TOTAL VALUE: 
-                                <coins-display :coins="totalValueMissing" :convertTotalsInPlat="convertTotalsInPlat" />
-                            </span>
-                        </div>
-                    </div>
-                    <hr>       
-                    <div class="form-check form-switch">
-                        <input class="form-check-input" type="checkbox" v-model="generateCoinsWithTreasure">
-                        <label class="form-check-label" for="flexSwitchCheckDefault">Generate coins with treasure</label>
-                    </div>
-                    <div class="mt-2">  
-                        <span>Random treasure: </span>
-                        <button type="button" class="btn btn-primary mb-1" v-on:click="generateRandomTreasure('small')">Generate small</button>
-                        <button type="button" class="btn btn-primary mb-1" v-on:click="generateRandomTreasure('medium')">Generate medium</button>
-                        <button type="button" class="btn btn-primary mb-1" v-on:click="generateRandomTreasure('large')">Generate large</button>
-                    </div>          
-                    <hr>   
-                    <div class="mt-2">             
-                        <div class="">
-                            <span>Currency to randomize: </span>
-                            <input class="" type="checkbox" style="margin-left:6px;" v-model="usePlatinumInRandomTreasures">
-                            <label class="form-check-label" style="font-weight: bold;" for="usePlatinumInRandomTreasures">pp</label>
-                            <input class="" type="checkbox" style="margin-left:4px;" v-model="useGoldInRandomTreasures">
-                            <label class="form-check-label" style="font-weight: bold;" for="useGoldInRandomTreasures">gp</label>
-                            <input class="" type="checkbox" style="margin-left:4px;" v-model="useSilverInRandomTreasures">
-                            <label class="form-check-label" style="font-weight: bold;" for="useSilverInRandomTreasures">sp</label>
-                            <input class="" type="checkbox" style="margin-left:4px;" v-model="useCopperInRandomTreasures">
-                            <label class="form-check-label" style="font-weight: bold;" for="useCopperInRandomTreasures">cp</label>
-                        </div>
-                    </div>
-                    <div class="mt-2">
-                        <span>Random coins: </span>
-                        <button type="button" class="btn btn-primary mb-1" v-on:click="addRandomCoinsToTreasure('small')">Add small</button>
-                        <button type="button" class="btn btn-primary mb-1" v-on:click="addRandomCoinsToTreasure('medium')">Add medium</button>
-                        <button type="button" class="btn btn-primary mb-1" v-on:click="addRandomCoinsToTreasure('large')">Add large</button>
-                    </div>
-                    <div style="display:flex;" class="row">
-                        <input name="pp" class="col-1" v-model.number='customCoins.pp' style="background-color: #666; margin-left:12px; margin-top:12px; margin-bottom:12px;">
-                        <label for="pp" class="col-1" style="margin-top:12px; margin-bottom:12px;">pp</label>
-                        <input name="gp" class="col-1" v-model.number='customCoins.gp' style="background-color: #666; margin-top:12px; margin-bottom:12px;">
-                        <label for="gp" class="col-1" style="margin-top:12px; margin-bottom:12px;">gp</label>
-                        <input name="sp" class="col-1" v-model.number='customCoins.sp' style="background-color: #666; margin-top:12px; margin-bottom:12px;">
-                        <label for="sp" class="col-1" style="margin-top:12px; margin-bottom:12px;">sp</label>
-                        <input name="cp" class="col-1" v-model.number='customCoins.cp' style="background-color: #666; margin-top:12px; margin-bottom:12px;">
-                        <label for="cp" class="col-1" style="margin-top:12px; margin-bottom:12px;">cp</label>
-                        <button type="button" class="btn btn-primary mb-1 col-3" v-on:click="addRandomCoinsToTreasure('custom')">Add to treasure</button>
-                    </div>
-                    <hr>
-                    <div v-if="addedItems.length > 0" class="mt-2">
-                        <button type="button" class="btn btn-primary mb-1" v-on:click="resetTreasure">Reset treasure</button>
-                    </div>
-                    <div v-if="addedItems.length > 0" class="mt-2 row">
-                        <div class="col-8">
-                            <input type="text" class="form-control" placeholder="Treasure name" v-model='treasureName'>
-                        </div>          
-                        <div class="col-4">
-                            <button type="button" class="btn btn-primary w-100" v-on:click="saveTreasure" :disabled="treasureName.length === 0">Save</button>
-                        </div>              
-                    </div>
-                    <div v-if="treasures.length > 0" class="row mt-2 mr-2">
-                        <div class="col-8">
-                            <select v-model='selectedTreasureId' class="form-select">
-                                <option value="-1">Select treasure</option>
-                                <option v-for="treasure in treasures" :value="treasure.id">{{treasure.name}}</option>
-                            </select>
-                        </div>
-                        <div class="btn-group col-4" role="group">
-                            <button type="button" class="btn btn-primary" v-on:click="loadTreasure" style="margin-right:3px;">Load</button>
-                            <button type="button" class="btn btn-danger mr-1" v-on:click="removeTreasure"><i class="bi bi-x"></i></button>
-                        </div>
-                    </div>
-                    <hr v-if="treasures.length > 0 || addedItems.length > 0">
+                    
                 </div>
                 <div class="col-lg-8">
                     <div class="row g-1">
@@ -417,6 +472,7 @@
                                         <item-list-item :item="item"
                                             @add-normal="addItem($event, false, false)"
                                             @open-link="openLink($event)"
+                                            @add-filter="addFilterFromLink($event)"
                                         />
                                     </template>
                                 </tbody>
@@ -427,7 +483,7 @@
             </div>
         </div>
     </div>
-    <script src='./itemTable.js'></script>
+    <script src='./itemTable2.js'></script>
     <script src='./components/itemListItem.js'></script>
     <script src='./components/coinsDisplay.js'></script>
     <script src='./components/multiSelect.js'></script>
@@ -443,30 +499,13 @@
             return 0;
         }
         
-        function setDifficultiesBasedOnNumberOfPlayers(partySize, difficulties){
-            difficulties[0].exp = 10*partySize;
-            difficulties[1].exp = 15*partySize;
-            difficulties[2].exp = 20*partySize;
-            difficulties[3].exp = 30*partySize;
-            difficulties[4].exp = 40*partySize;
-        }
-        
         function getItemLevel(item){
             return item.data.level;
         }
         
         var getDefaultFilters = function(){
             return {nameFilter: '', levelMinFilter: 'All', levelMaxFilter: 'All'};
-        }       
-        var getDefaultEncounterDifficulties = function(){
-            return [
-            {id: 0, displayName: "Trivial", exp: 40, isActive: false},
-            {id: 1, displayName: "Low", exp: 60, isActive: false},
-            {id: 2, displayName: "Moderate", exp: 80, isActive: false},
-            {id: 3, displayName: "Severe", exp: 120, isActive: false},
-            {id: 4, displayName: "Extreme", exp: 160, isActive: false}
-            ];
-        }
+        }     
         
         var app = new Vue({
             el: '#app',
@@ -588,7 +627,28 @@
                 this.levels.unshift('All')
                 this.filterItems();
 
-                this.setInitialValues();
+                this.setInitialValues();                 
+
+                var coll = document.getElementsByClassName("collapsible");
+                var i;
+
+                for (i = 0; i < coll.length; i++) {
+                    coll[i].addEventListener("click", function() {
+                        this.classList.toggle("active");
+                        if(this.innerHTML.includes("Show")){
+                            this.innerHTML = this.innerHTML.replace("&gt; Show", '<i class="bi bi-arrow-down"></i> Collapse');
+                        } else{
+                            this.innerHTML = this.innerHTML.replace('<i class="bi bi-arrow-down"></i> Collapse', "&gt; Show");
+                        }
+                        var content = this.nextElementSibling;
+                        content.classList.toggle("active");
+                        if (content.style.maxHeight){
+                            content.style.maxHeight = null;
+                        } else {
+                            content.style.maxHeight = content.scrollHeight + "px";
+                        }
+                    });
+                }
             },
             watch:{
                 convertTotalsInPlat: function(newValue, oldValue){
@@ -683,6 +743,31 @@
                 },
                 multiSelectToggle: function(options, index){
                     this.$set(options[index], 'selected', !options[index].selected);
+                },
+                addFilterFromLink: function(params){              
+                    var filterName = params[0];
+                    var filterType = params[1];
+                    var filters = [];
+                    switch(filterType){
+                        case 'category': filters = this.categories; break;
+                        case 'subcategory': filters = this.subcategories; break;
+                        case 'trait': filters = this.traits; break;
+                        case 'name': this.updateNameFilter(filterName); return;
+                        case 'rarity': filters = this.rarities; break;
+                        case 'level': this.updateLevelFilter(filterName); return;
+                    }      
+                    var foundFilter = filters.find((filter) => {
+                        return filter.displayName == filterName;
+                    });
+                    this.multiSelectToggle(filters, foundFilter.index);
+                    this.closeFilterMultiSelect(filters);
+                },
+                updateNameFilter: function(name){
+                    this.filters.nameFilter = name;
+                },
+                updateLevelFilter: function(level){
+                    this.filters.levelMinFilter = level;
+                    this.filters.levelMaxFilter = level;
                 },
                 getMinLevelFromStr: function(level){
                     if(level == '—' || level == 'All'){
@@ -975,6 +1060,11 @@
                     if(isNaN(this.customCoins.cp)){
                         this.customCoins.cp = 0;
                     }                    
+                },
+                generateSingleItem: function(){
+                    var index = Math.floor(Math.random() * this.filteredItemList.length);
+
+                    this.addItem(this.filteredItemList[index]);
                 },
                 generateRandomTreasure: function(treasureSize){
                     this.resetTreasure();
@@ -1272,9 +1362,32 @@
                 loadTreasure: function(){
                     var treasure = this.treasures.filter(treasure => treasure.id === this.selectedTreasureId)[0];
                     if(treasure){
-                        this.addedItems = JSON.parse(treasure.stringifyItems);
+                        this.addedItems = this.checkLinksOnTreasure(JSON.parse(treasure.stringifyItems));
                     }
                     this.setTotalValue();
+                },
+                checkLinksOnTreasure: function(items){
+                    try{                        
+                        items.forEach((item) => {
+                            this.checkLink(item);
+                            this.checkLink(item.category);
+                            this.checkLink(item.subcategory);
+                            this.checkLink(item.rarity);
+                            item.traits.forEach((trait) => {
+                                this.checkLink(trait);
+                            });
+                        });
+
+                        return items;
+                    }
+                    catch(err){
+                        return [];
+                    }
+                },
+                checkLink: function(item){
+                    if(!item.link.includes("https://2e.aonprd.com/")){
+                        item.link = "https://2e.aonprd.com/" + item.link;
+                    }
                 },
                 removeTreasure: function(){
                     var index = this.treasures.findIndex(treasure => treasure.id === this.selectedTreasureId);

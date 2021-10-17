@@ -151,6 +151,41 @@
         .encounter-button.encounter-extreme{
             border-color: #bd0900;
         }
+        
+        .collapsible {
+            color: #aaa;
+            cursor: pointer;
+            padding: 4px;
+            width: 100%;
+            border: none;
+            text-align: left;
+            outline: none;
+            font-size: 15px;
+        }
+
+        .collapsible:hover {
+            background-color: #444;
+            color: black;
+        }
+
+        .content {
+            padding: 0 12px;
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.2s ease-out;
+        }
+
+        .content.active{
+            margin-top: 10px;
+        }
+
+        .creature-input{
+            background-color: #666; 
+            margin-left:2px; 
+            margin-bottom:12px; 
+            padding-left:2px; 
+            padding-right:2px;
+        }
     </style>
     <!-- Global site tag (gtag.js) - Google Analytics -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-GNV4ZBVCVM"></script>
@@ -209,6 +244,70 @@
                             </ul>
                         </div>   
                     </div>
+                    <hr style="margin-top: 2px; margin-bottom: 2px;">                  
+                    <div class="collapsible">
+                        <span>> Show save and load options</span>
+                    </div>    
+                    <div class="content">   
+                        <div class="mt-2 row">
+                            <div class="col-8">
+                                <input type="text" class="form-control" placeholder="Encounter name" v-model='encounterName'>
+                            </div>          
+                            <div class="col-4">
+                                <button type="button" class="btn btn-primary w-100" v-on:click="saveEncounter" :disabled="encounterName.length === 0 || addedCreatures.length <= 0">Save</button>
+                            </div>              
+                        </div>
+                        <div v-if="encounters.length > 0" class="row mt-2 mr-2">
+                            <div class="col-8">
+                                <select v-model='selectedEncounterId' class="form-select">
+                                    <option value="-1">Select encounter</option>
+                                    <option v-for="encounter in encounters" :value="encounter.id">{{encounter.name}}</option>
+                                </select>
+                            </div>
+                            <div class="btn-group col-4" role="group">
+                                <button type="button" class="btn btn-primary" v-on:click="loadEncounter" style="margin-right:3px;">Load</button>
+                                <button type="button" class="btn btn-danger mr-1" v-on:click="removeEncounter"><i class="bi bi-x"></i></button>
+                            </div>
+                        </div>
+                        <hr>
+                    </div>
+                    <div class="collapsible">
+                        <span>> Show encounter creation options</span>
+                    </div>    
+                    <div class="content">
+                        <div class="mt-2">
+                            <button type="button" class="btn btn-primary mb-1" v-on:click="addRandomCreatureFromFilters()">Add 1 random creature</button>
+                        </div>
+                        <hr/>
+                        <div class="mt-2 mb-2">
+                            <div class="mb-1">
+                                <span>Using a maximum of </span>
+                                <input name="nbOfCreaturesInRandomEncounter" class="col-1 creature-input" type="number" v-model.number='nbOfCreaturesInRandomEncounter'>
+                                <span>creatures </span>
+                                <br/>
+                                <span>Create a random encounter for the following diffuculty: </span>
+                            </div>
+                            <button type="button" class="btn mb-1 bi-reception-0 encounter-trivial encounter-button" v-on:click="createRandomEncounterFromFilters(0)">Trivial</button>
+                            <button type="button" class="btn mb-1 bi-reception-1 encounter-low encounter-button" v-on:click="createRandomEncounterFromFilters(1)">Low</button>
+                            <button type="button" class="btn mb-1 bi-reception-2 encounter-moderate encounter-button" v-on:click="createRandomEncounterFromFilters(2)">Moderate</button>
+                            <button type="button" class="btn mb-1 bi-reception-3 encounter-severe encounter-button" v-on:click="createRandomEncounterFromFilters(3)">Severe</button>
+                            <button type="button" class="btn mb-1 bi-reception-4 encounter-extreme encounter-button" v-on:click="createRandomEncounterFromFilters(4)">Extreme</button>
+                        </div>
+                    </div>
+                    <hr style="margin-top:4px;">  
+                    <div v-if="addedCreatures.length > 0" class="mt-2">
+                        <button type="button" class="btn btn-primary mb-1" style="float:right;" v-on:click="resetEncounter">Reset encounter</button>
+                    </div>
+                    <div class="row">
+                        <div class="col-auto">
+                            <span>TOTAL XP: {{encounterExp}} XP <b v-if="activeEncounterDifficulty.displayName != ''">(<i :class="'bi-reception-'+activeEncounterDifficulty.id+' encounter-'+activeEncounterDifficulty.displayName.toLowerCase()" class="bi"></i>{{activeEncounterDifficulty.displayName}})</b></span>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-auto">
+                            <span>AWARDED XP PER PLAYER: {{encounterExpFourMan}} XP</span>
+                        </div>
+                    </div>
                     <div class="table-responsive">
                         <table class="table table-dark">
                             <thead>
@@ -245,15 +344,15 @@
                                         </div>
                                     </td>
                                     <td>
-                                        <a v-if="creature.data.name.link !== ''" :href="getCreatureLink(creature)" @click.prevent.exact="openLink(getCreatureLink(creature), $event)" v-on:click.ctrl.exact="addFilterFromLink([creature.data.name.name, 'name'])">
+                                        <a v-if="creature.data.link !== ''" :href="getCreatureLink(creature)" @click.prevent.exact="openLink(getCreatureLink(creature), $event)" v-on:click.ctrl.exact="addFilterFromLink([creature.data.name, 'name'])">
                                             <span v-if="creature.isWeak">Weak</span>
                                             <span v-if="creature.isElite">Elite</span>
-                                            {{creature.data.name.name}}
+                                            {{creature.data.name}}
                                         </a>
                                         <template v-else>
                                             <span v-if="creature.isWeak">Weak</span>
                                             <span v-if="creature.isElite">Elite</span>
-                                            {{creature.data.name.name}}
+                                            {{creature.data.name}}
                                         </template>
                                     </td>
                                     <td>
@@ -265,59 +364,6 @@
                             </tbody>
                         </table>
                     </div>
-                    <div class="row">
-                        <div class="col-auto">
-                            <span>TOTAL XP: {{encounterExp}} XP <b v-if="activeEncounterDifficulty.displayName != ''">(<i :class="'bi-reception-'+activeEncounterDifficulty.id+' encounter-'+activeEncounterDifficulty.displayName.toLowerCase()" class="bi"></i>{{activeEncounterDifficulty.displayName}})</b></span>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-auto">
-                            <span>AWARDED XP PER PLAYER: {{encounterExpFourMan}} XP</span>
-                        </div>
-                    </div>
-                    <hr/>
-                    <div class="mt-2">
-                        <button type="button" class="btn btn-primary mb-1" v-on:click="addRandomCreatureFromFilters()">Add 1 random creature</button>
-                    </div>
-                    <div class="mt-2">
-                        <div>
-                            <span>Using a maximum of </span>
-                            <input name="nbOfCreaturesInRandomEncounter" class="col-1" type="number" v-model.number='nbOfCreaturesInRandomEncounter' style="background-color: #666; margin-left:12px; margin-top:12px; margin-bottom:12px;">
-                            <span>creatures </span>
-                            <br/>
-                            <span>Create a random encounter for the following diffuculty: </span>
-                        </div>
-                        <button type="button" class="btn mb-1 bi-reception-0 encounter-trivial encounter-button" v-on:click="createRandomEncounterFromFilters(0)">Trivial</button>
-                        <button type="button" class="btn mb-1 bi-reception-1 encounter-low encounter-button" v-on:click="createRandomEncounterFromFilters(1)">Low</button>
-                        <button type="button" class="btn mb-1 bi-reception-2 encounter-moderate encounter-button" v-on:click="createRandomEncounterFromFilters(2)">Moderate</button>
-                        <button type="button" class="btn mb-1 bi-reception-3 encounter-severe encounter-button" v-on:click="createRandomEncounterFromFilters(3)">Severe</button>
-                        <button type="button" class="btn mb-1 bi-reception-4 encounter-extreme encounter-button" v-on:click="createRandomEncounterFromFilters(4)">Extreme</button>
-                    </div>
-                    <hr/>
-                    <div v-if="addedCreatures.length > 0" class="mt-2">
-                        <button type="button" class="btn btn-primary mb-1" v-on:click="resetEncounter">Reset encounter</button>
-                    </div>
-                    <div v-if="addedCreatures.length > 0" class="mt-2 row">
-                        <div class="col-8">
-                            <input type="text" class="form-control" placeholder="Encounter name" v-model='encounterName'>
-                        </div>          
-                        <div class="col-4">
-                            <button type="button" class="btn btn-primary w-100" v-on:click="saveEncounter" :disabled="encounterName.length === 0">Save</button>
-                        </div>              
-                    </div>
-                    <div v-if="encounters.length > 0" class="row mt-2 mr-2">
-                        <div class="col-8">
-                            <select v-model='selectedEncounterId' class="form-select">
-                                <option value="-1">Select encounter</option>
-                                <option v-for="encounter in encounters" :value="encounter.id">{{encounter.name}}</option>
-                            </select>
-                        </div>
-                        <div class="btn-group col-4" role="group">
-                            <button type="button" class="btn btn-primary" v-on:click="loadEncounter" style="margin-right:3px;">Load</button>
-                            <button type="button" class="btn btn-danger mr-1" v-on:click="removeEncounter"><i class="bi bi-x"></i></button>
-                        </div>
-                    </div>
-                    <hr>
                 </div>
                 <div class="col-lg-8">
                     <div class="row g-1">
@@ -401,7 +447,7 @@
                                                 v-on:click="removeCustomCreature(creature, index, $event)"><i class="bi bi-x"></i></button>
                                             </div>
                                         </td>
-                                        <td><input type="text" v-model="creature.name.name" class="form-control"></td>
+                                        <td><input type="text" v-model="creature.name" class="form-control"></td>
                                         <td>
                                             <select v-model='creature.level' class="form-select" @change="setEncounterExp">
                                                 <option v-for="level in levels" :value="level">{{level}}</option>
@@ -634,7 +680,28 @@
                 this.levels.unshift('All')
                 this.filterCreatures();
 
-                this.setInitialValues();
+                this.setInitialValues();                 
+
+                var coll = document.getElementsByClassName("collapsible");
+                var i;
+
+                for (i = 0; i < coll.length; i++) {
+                    coll[i].addEventListener("click", function() {
+                        this.classList.toggle("active");
+                        if(this.innerHTML.includes("Show")){
+                            this.innerHTML = this.innerHTML.replace("&gt; Show", '<i class="bi bi-arrow-down"></i> Collapse');
+                        } else{
+                            this.innerHTML = this.innerHTML.replace('<i class="bi bi-arrow-down"></i> Collapse', "&gt; Show");
+                        }
+                        var content = this.nextElementSibling;
+                        content.classList.toggle("active");
+                        if (content.style.maxHeight){
+                            content.style.maxHeight = null;
+                        } else {
+                            content.style.maxHeight = content.scrollHeight + "px";
+                        }
+                    });
+                }
             },
             watch:{
                 isProficiencyWithoutLevel: function(newValue, oldValue){
@@ -837,7 +904,7 @@
                         if (this.filters.levelMaxFilter != defaultFilters.levelMaxFilter && creature.level > this.filters.levelMaxFilter) {
                             isInTheList = false;
                         }
-                        if(this.filters.nameFilter !== "" && !creature.name.name.toLowerCase().includes(this.filters.nameFilter.toLowerCase())){
+                        if(this.filters.nameFilter !== "" && !creature.name.toLowerCase().includes(this.filters.nameFilter.toLowerCase())){
                             isInTheList = false;
                         }
 
@@ -885,7 +952,7 @@
                         "id": "Custom-" + this.customCreatureId, 
                         "category": "Custom", 
                         "link": "", 
-                        "name": {name:"Custom Creature " + this.customCreatureId, link:""}, 
+                        "name": "Custom Creature " + this.customCreatureId, 
                         "family": this.filters.familyFilter, 
                         "level": level, 
                         "alignment": this.filters.alignmentFilter, 
@@ -905,10 +972,10 @@
                 },
                 getCreatureLink(creature){                    
                     if(creature.isWeak)
-                        return creature.data.name.link + '&Weak=true';
+                        return creature.data.link + '&Weak=true';
                     if(creature.isElite)
-                        return creature.data.name.link + '&Elite=true';
-                    return creature.data.name.link;
+                        return creature.data.link + '&Elite=true';
+                    return creature.data.link;
                 },
                 resetFilters: function(event){
                     this.isAutomaticFilterEnabled = false;
@@ -1086,7 +1153,7 @@
                 checkCreatureList: function(loadedCreatures){
                     var addedCreatures = [];
                     try{
-                        if(loadedCreatures.length > 0 && !loadedCreatures[0].data.name.name){
+                        if(loadedCreatures.length > 0 && (!loadedCreatures[0].data.name || typeof loadedCreatures[0].data.name === 'object')){
                             loadedCreatures.forEach((loadedCreature) => {
                                 var foundCreature = this.creatureList.find((creature) => {
                                     return creature.id == loadedCreature.data.id;

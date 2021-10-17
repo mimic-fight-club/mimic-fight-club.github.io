@@ -9,7 +9,7 @@ Vue.component('creature-list-item', {
                 <button type="button" class="btn btn-success status-button" v-on:click="$emit('add-elite', creature)"><i class="bi bi-shield-plus"></i></button>
             </div >
         </td >
-        <td><a :href="creature.name.link" @click.prevent.exact="$emit('open-link', creature.name.link)" v-on:click.ctrl.exact="$emit('add-filter', [creature.name.name, 'name'])">{{ creature.name.name }}</a></td >
+        <td><a :href="creature.link" @click.prevent.exact="$emit('open-link', creature.link)" v-on:click.ctrl.exact="$emit('add-filter', [creature.name, 'name'])">{{ creature.name }}</a></td >
         <td><span v-on:click.ctrl.exact="$emit('add-filter', [creature.level, 'level'])">{{ creature.level }}</span></td>
         <td>
             <a v-if="creature.family.link !== ''" :href="creature.family.link" @click.prevent.exact="$emit('open-link', creature.family.link)" v-on:click.ctrl.exact="$emit('add-filter', [creature.family.name, 'family'])">{{ creature.family.name }}</a>
@@ -26,7 +26,6 @@ Vue.component('creature-list-item', {
                 </template>
                 <span v-if="index < creature.types.length -1"></span>
             </span>
-            {{ creature.type }}
         </td>
         <td><span v-on:click.ctrl.exact="$emit('add-filter', [creature.size, 'size'])">{{ creature.size }}</span></td>
         <td>
@@ -37,7 +36,6 @@ Vue.component('creature-list-item', {
                 </template>
                 <span v-if="index < creature.traits.length -1"></span>
             </span>
-            {{ creature.type }}
         </td>
     </tr>
     `
