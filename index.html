@@ -231,10 +231,7 @@
                         </div>  
                         <div class="col-12 col-sm-6 mb-xs-1 mt-xs-1">
                             <div class="ms-auto">
-                                <div class="form-check form-switch">
-                                    <input class="form-check-input" type="checkbox" v-model="isProficiencyWithoutLevel">
-                                    <label class="form-check-label" for="flexSwitchCheckDefault">Proficiency without Lvl</label>
-                                </div>
+                                <span>Exp budget per difficulty</span>
                             </div>
                             <ul class="list-group-flush ps-0">
                                 <li v-for="difficulty in encounterDifficulties" class="d-flex justify-content-between align-items-center">
@@ -275,23 +272,29 @@
                         <span>> Show encounter creation options</span>
                     </div>    
                     <div class="content">
-                        <div class="mt-2">
-                            <button type="button" class="btn btn-primary mb-1" v-on:click="addRandomCreatureFromFilters()">Add 1 random creature</button>
+                        <div class="ms-auto">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" v-model="isProficiencyWithoutLevel">
+                                <label class="form-check-label" for="flexSwitchCheckDefault">Proficiency without Lvl</label>
+                            </div>
                         </div>
                         <hr/>
                         <div class="mt-2 mb-2">
-                            <div class="mb-1">
-                                <span>Using a maximum of </span>
+                            <div class="mb-2">
+                                <span>Use a maximum of </span>
                                 <input name="nbOfCreaturesInRandomEncounter" class="col-1 creature-input" type="number" v-model.number='nbOfCreaturesInRandomEncounter'>
                                 <span>creatures </span>
                                 <br/>
-                                <span>Create a random encounter for the following diffuculty: </span>
+                                <span>The following buttons will create a random encounter for the specified diffuculty based on your filter selection, if it is impossible to reach the difficulty with the available creatures, it will use the closest difficulty</span>
                             </div>
                             <button type="button" class="btn mb-1 bi-reception-0 encounter-trivial encounter-button" v-on:click="createRandomEncounterFromFilters(0)">Trivial</button>
                             <button type="button" class="btn mb-1 bi-reception-1 encounter-low encounter-button" v-on:click="createRandomEncounterFromFilters(1)">Low</button>
                             <button type="button" class="btn mb-1 bi-reception-2 encounter-moderate encounter-button" v-on:click="createRandomEncounterFromFilters(2)">Moderate</button>
                             <button type="button" class="btn mb-1 bi-reception-3 encounter-severe encounter-button" v-on:click="createRandomEncounterFromFilters(3)">Severe</button>
                             <button type="button" class="btn mb-1 bi-reception-4 encounter-extreme encounter-button" v-on:click="createRandomEncounterFromFilters(4)">Extreme</button>
+                        </div>
+                        <div class="mt-2">
+                            <button type="button" class="btn btn-primary mb-1" v-on:click="addRandomCreatureFromFilters()">Add 1 random creature</button>
                         </div>
                     </div>
                     <hr style="margin-top:4px;">  
