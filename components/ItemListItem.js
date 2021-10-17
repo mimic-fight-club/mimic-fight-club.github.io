@@ -42,7 +42,7 @@ Vue.component('item-list-item', {
     `,
     methods: {        
         getAoNLink(subItem){
-            return subItem.link;
+            return "https://2e.aonprd.com/" + subItem.link;
         }
     }
 });
