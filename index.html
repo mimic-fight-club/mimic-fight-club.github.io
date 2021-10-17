@@ -231,7 +231,7 @@
                                         <button 
                                         type="button" 
                                         class="btn btn-secondary btn-sm remove-button"
-                                        v-on:click="removeCreature(creature, index, $event)"><i class="bi bi-dash"></i></button>
+                                        v-on:click="removeCreature(creature, index, false, $event)"><i class="bi bi-dash"></i></button>
                                         <button 
                                         type="button" 
                                         class="btn btn-danger btn-sm remove-button"
@@ -940,9 +940,9 @@
                     addedCreature.amount++;
                     this.setEncounterExp();
                 },
-                removeCreature: function(creatureObject, index, event){
+                removeCreature: function(creatureObject, index, fromSwitch, event){
                     this.addedCreatures[index].amount--;
-                    if(this.addedCreatures[index].amount < 0){
+                    if(this.addedCreatures[index].amount < 0 || (this.addedCreatures[index].amount <= 0 && fromSwitch)){
                         this.addedCreatures.splice(index, 1);
                     }                    
                     this.setEncounterExp();
@@ -980,21 +980,21 @@
                 },
                 switchWeak: function(creature, index, event){
                     if(creature.isWeak){return;}
-                    this.removeCreature(creature.data, index);
+                    this.removeCreature(creature.data, index, true);
                     this.addCreature(creature.data, true, false);
                     this.mergeSameCreature(creature, index);
                     this.setEncounterExp();
                 },
                 switchElite: function(creature, index, event){
                     if(creature.isElite){return;}                    
-                    this.removeCreature(creature.data, index);
+                    this.removeCreature(creature.data, index, true);
                     this.addCreature(creature.data, false, true);
                     this.mergeSameCreature(creature, index);
                     this.setEncounterExp();
                 },
                 switchNormal: function(creature, index, event){
                     if(!creature.isWeak && !creature.isElite){return;}
-                    this.removeCreature(creature.data, index);
+                    this.removeCreature(creature.data, index, true);
                     this.addCreature(creature.data, false, false);
                     this.mergeSameCreature(creature, index);
                     this.setEncounterExp();
@@ -1050,7 +1050,7 @@
                     }
 
                     if(window.localStorage.addedCreatures)
-                        this.addedCreatures = JSON.parse(window.localStorage.addedCreatures);
+                        this.addedCreatures = this.checkCreatureList(JSON.parse(window.localStorage.addedCreatures));
                     if(window.localStorage.customCreatures)
                         this.customCreatures = JSON.parse(window.localStorage.customCreatures);
                     if(window.localStorage.customCreatureId)
@@ -1079,9 +1079,30 @@
                 loadEncounter: function(){
                     var encounter = this.encounters.filter(encounter => encounter.id === this.selectedEncounterId)[0];
                     if(encounter){
-                        this.addedCreatures = JSON.parse(encounter.stringifyCreatures);
+                        this.addedCreatures = this.checkCreatureList(JSON.parse(encounter.stringifyCreatures));
                     }
                     this.setEncounterExp();
+                },
+                checkCreatureList: function(loadedCreatures){
+                    var addedCreatures = [];
+                    try{
+                        if(loadedCreatures.length > 0 && !loadedCreatures[0].data.name.name){
+                            loadedCreatures.forEach((loadedCreature) => {
+                                var foundCreature = this.creatureList.find((creature) => {
+                                    return creature.id == loadedCreature.data.id;
+                                });
+                                loadedCreature.data = foundCreature;
+                                addedCreatures.push(loadedCreature);
+                            });
+                        }
+                        else{
+                            addedCreatures = loadedCreatures;
+                        }
+                    }
+                    catch(err){
+                        addedCreatures = [];
+                    }
+                    return addedCreatures;
                 },
                 removeEncounter: function(){
                     var index = this.encounters.findIndex(encounter => encounter.id === this.selectedEncounterId);
