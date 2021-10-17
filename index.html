@@ -829,7 +829,7 @@
                     expBudget += randomizedPart;
                     expMargin -= randomizedPart;
 
-                    for(var i = 0; i < maximumNbOfCreatures; i++){
+                    for(var i = 0; i < maximumNbOfCreatures && expBudget > 0 && expMargin > 0; i++){
                         var expPerMonster = Math.floor(expBudget / (maximumNbOfCreatures-i));
                         var monsterLevel = this.getBestMonsterLevelForExpBudget(expPerMonster, expMargin);
                         if(monsterLevel){
@@ -837,6 +837,12 @@
                         }
                         var budgetForMonsterLevel = monsterLevel ? this.getExpForCreatureLvl(monsterLevel) : 0;
                         expBudget -= budgetForMonsterLevel;
+                        if(budgetForMonsterLevel > expPerMonster){
+                            expMargin -= budgetForMonsterLevel - expPerMonster;
+                            if(expMargin < 0){
+                                expMargin = 0;
+                            }
+                        }
                     }
 
                     levelOfCreaturesToRandomize.forEach((level) => {
