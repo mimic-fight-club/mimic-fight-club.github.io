@@ -163,13 +163,11 @@
         .coin-input{
             background-color: #666; 
             margin-left:12px; 
-            margin-top:12px; 
             margin-bottom:12px; 
             padding-left:2px; 
             padding-right:2px;
         }
         .coin-label{
-            margin-top:12px; 
             padding-left:2px; 
             padding-top:6px;
         }
@@ -303,7 +301,7 @@
                             <button type="button" class="btn btn-primary mb-1" v-on:click="addRandomCoinsToTreasure('medium')">Medium</button>
                             <button type="button" class="btn btn-primary mb-1" v-on:click="addRandomCoinsToTreasure('large')">Large</button>
                         </div>
-                        <div style="display:flex;" class="row">
+                        <div style="display:flex;" class="row mt-1">
                             <input name="pp" class="col-1 coin-input" type="number" v-model.number='customCoins.pp'>
                             <label for="pp" class="col-1 coin-label">pp</label>
                             <input name="gp" class="col-1 coin-input" type="number" v-model.number='customCoins.gp'>
