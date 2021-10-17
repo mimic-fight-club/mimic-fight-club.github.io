@@ -132,6 +132,25 @@
         .encounter-extreme{
             color: #bd0900
         }
+        .encounter-button:hover{
+            border-color: white;
+            color: white;
+        }
+        .encounter-button.encounter-trivial{
+            border-color: #2fbd00;
+        }
+        .encounter-button.encounter-low{
+            border-color: #7bbd00;
+        }
+        .encounter-button.encounter-moderate{
+            border-color: #b4bd00;
+        }
+        .encounter-button.encounter-severe{
+            border-color: #bd7e00;
+        }
+        .encounter-button.encounter-extreme{
+            border-color: #bd0900;
+        }
     </style>
     <!-- Global site tag (gtag.js) - Google Analytics -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-GNV4ZBVCVM"></script>
@@ -226,21 +245,21 @@
                                         </div>
                                     </td>
                                     <td>
-                                        <a v-if="creature.data.link !== ''" :href="getCreatureLink(creature)" @click.prevent="openLink(getCreatureLink(creature), $event)">
+                                        <a v-if="creature.data.name.link !== ''" :href="getCreatureLink(creature)" @click.prevent.exact="openLink(getCreatureLink(creature), $event)" v-on:click.ctrl.exact="addFilterFromLink([creature.data.name.name, 'name'])">
                                             <span v-if="creature.isWeak">Weak</span>
                                             <span v-if="creature.isElite">Elite</span>
-                                            {{creature.data.name}}
+                                            {{creature.data.name.name}}
                                         </a>
                                         <template v-else>
                                             <span v-if="creature.isWeak">Weak</span>
                                             <span v-if="creature.isElite">Elite</span>
-                                            {{creature.data.name}}
+                                            {{creature.data.name.name}}
                                         </template>
                                     </td>
                                     <td>
-                                        <span v-if="!creature.isWeak && !creature.isElite"> {{creature.data.level}}</span>
-                                        <span v-if="creature.isWeak"> {{creature.data.level-1}}</span>
-                                        <span v-if="creature.isElite"> {{creature.data.level+1}}</span>
+                                        <span v-if="!creature.isWeak && !creature.isElite" v-on:click.ctrl.exact="addFilterFromLink([creature.data.level, 'level'])"> {{creature.data.level}}</span>
+                                        <span v-if="creature.isWeak" v-on:click.ctrl.exact="addFilterFromLink([creature.data.level, 'level'])"> {{creature.data.level-1}}</span>
+                                        <span v-if="creature.isElite" v-on:click.ctrl.exact="addFilterFromLink([creature.data.level, 'level'])"> {{creature.data.level+1}}</span>
                                     </td>
                                 </tr>
                             </tbody>
@@ -256,6 +275,25 @@
                             <span>AWARDED XP PER PLAYER: {{encounterExpFourMan}} XP</span>
                         </div>
                     </div>
+                    <hr/>
+                    <div class="mt-2">
+                        <button type="button" class="btn btn-primary mb-1" v-on:click="addRandomCreatureFromFilters()">Add 1 random creature</button>
+                    </div>
+                    <div class="mt-2">
+                        <div>
+                            <span>Using a maximum of </span>
+                            <input name="nbOfCreaturesInRandomEncounter" class="col-1" type="number" v-model.number='nbOfCreaturesInRandomEncounter' style="background-color: #666; margin-left:12px; margin-top:12px; margin-bottom:12px;">
+                            <span>creatures </span>
+                            <br/>
+                            <span>Create a random encounter for the following diffuculty: </span>
+                        </div>
+                        <button type="button" class="btn mb-1 bi-reception-0 encounter-trivial encounter-button" v-on:click="createRandomEncounterFromFilters(0)">Trivial</button>
+                        <button type="button" class="btn mb-1 bi-reception-1 encounter-low encounter-button" v-on:click="createRandomEncounterFromFilters(1)">Low</button>
+                        <button type="button" class="btn mb-1 bi-reception-2 encounter-moderate encounter-button" v-on:click="createRandomEncounterFromFilters(2)">Moderate</button>
+                        <button type="button" class="btn mb-1 bi-reception-3 encounter-severe encounter-button" v-on:click="createRandomEncounterFromFilters(3)">Severe</button>
+                        <button type="button" class="btn mb-1 bi-reception-4 encounter-extreme encounter-button" v-on:click="createRandomEncounterFromFilters(4)">Extreme</button>
+                    </div>
+                    <hr/>
                     <div v-if="addedCreatures.length > 0" class="mt-2">
                         <button type="button" class="btn btn-primary mb-1" v-on:click="resetEncounter">Reset encounter</button>
                     </div>
@@ -321,7 +359,12 @@
                             <label for="sizeFilter" class="form-label">Size</label>
                             <multi-select :options="sizes" @selected="multiSelectToggle(sizes, $event)"
                                 @closed="closeFilterMultiSelect(sizes)" name="sizesFilter"></multi-select>
-                        </div>                      
+                        </div>                    
+                        <div class="order-2 col-4 col-sm">
+                            <label for="traitFilter" class="form-label">Traits</label>
+                            <multi-select :options="traits" @selected="multiSelectToggle(traits, $event)"
+                                @closed="closeFilterMultiSelect(traits)" name="traitFilter"></multi-select>
+                        </div>                    
                         <div class="order-1 order-sm-2 col-4 col-sm align-self-end">
                             <button type="button" class="btn btn-primary w-100" v-on:click="resetFilters">Reset filters</button>
                         </div>   
@@ -339,8 +382,9 @@
                                         <th scope="col">Level</th>
                                         <th scope="col">Family</th>
                                         <th scope="col">Alignment</th>
-                                        <th scope="col">Type</th>
+                                        <th scope="col">Types</th>
                                         <th scope="col">Size</th>
+                                        <th scope="col">Traits</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -357,7 +401,7 @@
                                                 v-on:click="removeCustomCreature(creature, index, $event)"><i class="bi bi-x"></i></button>
                                             </div>
                                         </td>
-                                        <td><input type="text" v-model="creature.name" class="form-control"></td>
+                                        <td><input type="text" v-model="creature.name.name" class="form-control"></td>
                                         <td>
                                             <select v-model='creature.level' class="form-select" @change="setEncounterExp">
                                                 <option v-for="level in levels" :value="level">{{level}}</option>
@@ -383,6 +427,11 @@
                                                 <option v-for="size in sizes" :value="size.value">{{size.displayName}}</option>
                                             </select>
                                         </td>
+                                        <td>
+                                            <select v-model='creature.traits' class="form-select">
+                                                <option v-for="trait in traits" :value="trait.value">{{trait.displayName}}</option>
+                                            </select>
+                                        </td>
                                     </tr>
                                     <template v-for="creature in filteredCreatureList">
                                         <creature-list-item :creature="creature"
@@ -390,17 +439,23 @@
                                             @add-normal="addCreature($event, false, false)"
                                             @add-elite="addCreature($event, false, true)"
                                             @open-link="openLink($event)"
+                                            @add-filter="addFilterFromLink($event)"
                                         />
                                     </template>
                                 </tbody>
                             </table>
+                            <div>
+                                <h4>Tips</h4>
+                                <div>Use ctrl+click on column text to auto-filter on that value.</div>
+                                <div>While using the filters, use ctrl+enter to unselect all.</div>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-    <script src='./monsterTable2.js'></script>
+    <script src='./monsterTable5.js'></script>
     <script src='./components/creatureListItem.js'></script>
     <script src='./components/multiSelect.js'></script>
     <script>    
@@ -459,6 +514,7 @@
                 families: [],
                 types: [],
                 sizes: [],
+                traits: [],
                 levels: [],
                 addedCreatures: [],
                 partySize: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
@@ -472,7 +528,8 @@
                 selectedEncounterId: -1,
                 filteredCreatureList: [],
                 isAutomaticFilterEnabled: true,
-                isProficiencyWithoutLevel: false
+                isProficiencyWithoutLevel: false,
+                nbOfCreaturesInRandomEncounter: 4
             },
             computed: {
                 alignmentFilter: function(){
@@ -487,6 +544,11 @@
                 },
                 sizeFilter: function () {
                     return this.sizes
+                        .filter((el) => { return el.selected === true })
+                        .map((el) => { return el.value });
+                },
+                traitFilter: function () {
+                    return this.traits
                         .filter((el) => { return el.selected === true })
                         .map((el) => { return el.value });
                 },
@@ -525,7 +587,7 @@
                 this.alignments.sort(sortString);
                 
                 this.creatureList.forEach((creature) => {
-                    let family = creature.family;
+                    let family = creature.family.name;
                     if(!this.families.find(lowerCaseMatch(family, "value"))){                        
                         this.families.push({displayName:family, value:family.toLowerCase(), selected: false});
                     }
@@ -534,10 +596,12 @@
                 this.families.sort(sortString);
                 
                 this.creatureList.forEach((creature) => {
-                    let type = creature.type;
-                    if(!this.types.find(lowerCaseMatch(type, "value"))){                        
-                        this.types.push({displayName:type, value:type.toLowerCase(), selected: false});
-                    }
+                    creature.types.forEach((creatureType) => {
+                        let type = creatureType.name;
+                        if(!this.types.find(lowerCaseMatch(type, "value"))){                        
+                            this.types.push({displayName:type, value:type.toLowerCase(), selected: false});
+                        }
+                    });
                     
                 });
                 this.types.sort(sortString);
@@ -548,6 +612,16 @@
                     }
                 });
                 this.sizes.sort(sortString);
+                
+                this.creatureList.forEach((creature) => {                    
+                    creature.traits.forEach((creatureTrait) => {
+                        let trait = creatureTrait.name;
+                        if(!this.traits.find(lowerCaseMatch(trait, "value"))){                        
+                            this.traits.push({displayName:trait, value:trait.toLowerCase(), selected: false});
+                        }
+                    });
+                });
+                this.traits.sort(sortString);
                 
                 this.creatureList.forEach((creature) => {
                     if(!this.levels.includes(creature.level)){                        
@@ -570,6 +644,13 @@
                 customCreatures: {
                     handler: function(newCreatures, oldCreatures){
                         this.saveCreatures();
+                        var newCreaturesIds = newCreatures.map((creature) => creature.id);
+                        var creaturesPresentInEncounter = this.addedCreatures.find((creature) => {
+                            return newCreaturesIds.includes(creature.data.id);
+                        });
+                        if(creaturesPresentInEncounter){
+                            this.setEncounterExp();
+                        }
                     },
                     deep: true
                 },
@@ -594,6 +675,7 @@
                 'filters.typeFilter': function(){ this.automaticCreatureFilter(); },
                 'filters.alignmentFilter': function(){ this.automaticCreatureFilter(); },
                 'filters.sizeFilter': function(){ this.automaticCreatureFilter(); },
+                'filters.traitFilter': function(){ this.automaticCreatureFilter(); },
                 encounters: {
                     handler: function(newEncounters, oldEncounters){
                         window.localStorage.encounters = JSON.stringify(this.encounters);
@@ -630,32 +712,151 @@
                 multiSelectToggle: function(options, index){
                     this.$set(options[index], 'selected', !options[index].selected);
                 },
+                addFilterFromLink: function(params){              
+                    var filterName = params[0];
+                    var filterType = params[1];
+                    var filters = [];
+                    switch(filterType){
+                        case 'family': filters = this.families; break;
+                        case 'type': filters = this.types; break;
+                        case 'trait': filters = this.traits; break;
+                        case 'name': this.updateNameFilter(filterName); return;
+                        case 'alignment': filters = this.alignments; break;
+                        case 'level': this.updateLevelFilter(filterName); return;
+                        case 'size': filters = this.sizes; break;
+                    }      
+                    var foundFilter = filters.find((filter) => {
+                        return filter.displayName == filterName;
+                    });
+                    this.multiSelectToggle(filters, foundFilter.index);
+                    this.closeFilterMultiSelect(filters);
+                },
+                updateNameFilter: function(name){
+                    this.filters.nameFilter = name;
+                },
+                updateLevelFilter: function(level){
+                    this.filters.levelMinFilter = level;
+                    this.filters.levelMaxFilter = level;
+                },
+                addRandomCreatureFromFilters: function(){
+                    var index = Math.floor(Math.random() * this.filteredCreatureList.length);
+
+                    this.addCreature(this.filteredCreatureList[index]);
+                },
+                createRandomEncounterFromFilters: function(difficulty){
+                    this.resetEncounter();
+                    var maximumNbOfCreatures = this.nbOfCreaturesInRandomEncounter;
+                    var levelOfCreaturesToRandomize = [];
+                    
+                    var expBudget = this.encounterDifficulties[difficulty].exp;
+                    var nextEncounterDifficulty = this.encounterDifficulties[difficulty+1];
+                    var nextExpBudget = expBudget +1;
+                    if(nextEncounterDifficulty){
+                        nextExpBudget = nextEncounterDifficulty.exp;
+                    }
+                    var expMargin = nextExpBudget - expBudget -1;
+                    var randomizedPart = Math.floor(Math.random() * expMargin);
+                    expBudget += randomizedPart;
+                    expMargin -= randomizedPart;
+
+                    for(var i = 0; i < maximumNbOfCreatures; i++){
+                        var expPerMonster = Math.floor(expBudget / (maximumNbOfCreatures-i));
+                        var monsterLevel = this.getBestMonsterLevelForExpBudget(expPerMonster, expMargin);
+                        if(monsterLevel){
+                            levelOfCreaturesToRandomize.push(monsterLevel);
+                        }
+                        var budgetForMonsterLevel = monsterLevel ? this.getExpForCreatureLvl(monsterLevel) : 0;
+                        expBudget -= budgetForMonsterLevel;
+                    }
+
+                    levelOfCreaturesToRandomize.forEach((level) => {
+                        this.addCreature(this.getRandomMonsterByLevel(level));
+                    });
+                },
+                getBestMonsterLevelForExpBudget: function(expPerMonster, expMargin){
+                    var level = null;
+                    var availableCreatureLevels = this.filteredCreatureList.map((creature) => creature.level);
+                    var minLevel = Math.min.apply(null, availableCreatureLevels);
+                    var maxLevel = Math.max.apply(null, availableCreatureLevels);
+                    for(var i = minLevel; i <= maxLevel; i++){
+                        var expForMonsterByLevel = this.getExpForCreatureLvl(i);
+                        if(expForMonsterByLevel <= expPerMonster){
+                            level = i;
+                        }
+                        else{
+                            break;
+                        }
+                    }
+                    if(!level && expMargin > 0){
+                        var newMargin = Math.floor(expMargin/2);
+                        return this.getBestMonsterLevelForExpBudget(expPerMonster + newMargin, newMargin);
+                    }
+                    return level;
+                },
+                getRandomMonsterByLevel: function(level){
+                    var creatureListForLevel = this.filteredCreatureList.filter((creature) => {
+                        return creature.level == level;
+                    });
+                    var index = Math.floor(Math.random() * creatureListForLevel.length);
+                    return creatureListForLevel[index];
+                },
+                getExpTable: function(){                    
+                    let expTable;
+                    if(this.isProficiencyWithoutLevel === false){
+                        expTable = [10,15,20,30,40,60,80,120,160];
+                    }else{
+                        expTable = [9,12,14,18,21,26,32,40,48,60,72,90,108,135,160];
+                    }
+                    return expTable;
+                },                
+                getExpForCreatureLvl: function(creatureLevel){
+                    var levelDiff = creatureLevel - this.partyFilters.partyLevelFilter;
+                    var expValue = 0;
+
+                    var expTable = this.getExpTable();
+
+                    halfTable = Math.floor(expTable.length/2);
+                    let expIndex = levelDiff + halfTable;
+                    
+                    if (expIndex >= expTable.length) {
+                        expValue = 300;
+                    }else if(expIndex >= 0){
+                        expValue = expTable[expIndex];
+                    }
+                    
+                    return expValue;
+                },
                 filterCreatures: function(){
                     var defaultFilters = getDefaultFilters();
                     var creatures = this.creatureList.filter((creature) => {
+                        var isInTheList = true;
+
                         if (this.filters.levelMinFilter != defaultFilters.levelMinFilter && creature.level < this.filters.levelMinFilter) {
-                            return false;
+                            isInTheList = false;
                         }
                         if (this.filters.levelMaxFilter != defaultFilters.levelMaxFilter && creature.level > this.filters.levelMaxFilter) {
-                            return false;
+                            isInTheList = false;
                         }
-                        if(this.filters.nameFilter !== ""){
-                            return creature.name.toLowerCase().includes(this.filters.nameFilter.toLowerCase());
+                        if(this.filters.nameFilter !== "" && !creature.name.name.toLowerCase().includes(this.filters.nameFilter.toLowerCase())){
+                            isInTheList = false;
                         }
 
                         if (this.alignmentFilter.length > 0 && !this.alignmentFilter.find((el) => {return el === creature.alignment.toLowerCase();})) {
-                            return false;
+                            isInTheList = false;
                         };
                         if (this.sizeFilter.length > 0 && !this.sizeFilter.find((el) => { return el === creature.size.toLowerCase(); })) {
-                            return false;
+                            isInTheList = false;
                         };
-                        if (this.familyFilter.length > 0 && !this.familyFilter.find((el) => { return el === creature.family.toLowerCase(); })) {
-                            return false;
+                        if (this.familyFilter.length > 0 && !this.familyFilter.find((el) => { return el === creature.family.name.toLowerCase(); })) {
+                            isInTheList = false;
                         };
-                        if (this.typeFilter.length > 0 && !this.typeFilter.find((el) => { return el === creature.type.toLowerCase(); })) {
-                            return false;
+                        if (this.typeFilter.length > 0 && !this.typeFilter.find((el) => { return creature.types.find(type => type.name.toLowerCase() === el); })) {
+                            isInTheList = false;
                         };
-                       return true;
+                        if (this.traitFilter.length > 0 && !this.traitFilter.find((el) => { return creature.traits.find(trait => trait.name.toLowerCase() === el); })) {
+                            isInTheList = false;
+                        };
+                       return isInTheList;
                     });
                     this.filteredCreatureList = creatures.sort((a, b) => {
                         if (a.level > b.level) return 1;
@@ -684,12 +885,13 @@
                         "id": "Custom-" + this.customCreatureId, 
                         "category": "Custom", 
                         "link": "", 
-                        "name": "Custom Creature " + this.customCreatureId, 
+                        "name": {name:"Custom Creature " + this.customCreatureId, link:""}, 
                         "family": this.filters.familyFilter, 
                         "level": level, 
                         "alignment": this.filters.alignmentFilter, 
                         "type": this.filters.typeFilter, 
-                        "size": this.filters.sizeFilter 
+                        "size": this.filters.sizeFilter,
+                        "traits": this.filters.traitFilter
                     });
                 },
                 openLinkInPopup(link, event){
@@ -703,10 +905,10 @@
                 },
                 getCreatureLink(creature){                    
                     if(creature.isWeak)
-                        return creature.data.link + '&Weak=true';
+                        return creature.data.name.link + '&Weak=true';
                     if(creature.isElite)
-                        return creature.data.link + '&Elite=true';
-                    return creature.data.link;
+                        return creature.data.name.link + '&Elite=true';
+                    return creature.data.name.link;
                 },
                 resetFilters: function(event){
                     this.isAutomaticFilterEnabled = false;
@@ -716,6 +918,10 @@
                     this.families.map((el) => el.selected = false);
                     this.types.map((el) => el.selected = false);
                     this.sizes.map((el) => el.selected = false);
+                    this.traits.map((el) => el.selected = false);
+                    
+                    this.filters.levelMinFilter = this.partyFilters.partyLevelFilter -2;
+                    this.filters.levelMaxFilter = this.partyFilters.partyLevelFilter +2;
 
                     this.$nextTick(() => {
                         this.isAutomaticFilterEnabled = true;
@@ -736,7 +942,7 @@
                 },
                 removeCreature: function(creatureObject, index, event){
                     this.addedCreatures[index].amount--;
-                    if(this.addedCreatures[index].amount <= 0){
+                    if(this.addedCreatures[index].amount < 0){
                         this.addedCreatures.splice(index, 1);
                     }                    
                     this.setEncounterExp();
@@ -755,7 +961,7 @@
                         this.adjustEncounterExpForCreatureLvl(getCreatureLevel(creature), creature.amount);
                     });
 
-                    this.encounterExpFourMan = (4 / this.partyFilters.partySizeFilter) * this.encounterExp; 
+                    this.encounterExpFourMan = Math.floor((4 / this.partyFilters.partySizeFilter) * this.encounterExp); 
                 },
                 saveCreatures: function(){
                     window.localStorage.addedCreatures = JSON.stringify(this.addedCreatures);
@@ -763,25 +969,7 @@
                     window.localStorage.customCreatureId = JSON.stringify(this.customCreatureId);
                 },
                 adjustEncounterExpForCreatureLvl: function(creatureLevel, multiplier){
-                    var levelDiff = creatureLevel - this.partyFilters.partyLevelFilter;
-                    var expValue = 0;
-
-                    let expTable;
-                    if(this.isProficiencyWithoutLevel === false){
-                        expTable = [10,15,20,30,40,60,80,120,160];
-                    }else{
-                        expTable = [9,12,14,18,21,26,32,40,48,60,72,90,108,135,160];
-                    }
-                    halfTable = Math.floor(expTable.length/2);
-                    let expIndex = levelDiff + halfTable;
-                    
-                    if (expIndex >= expTable.length) {
-                        expValue = 300;
-                    }else if(expIndex >= 0){
-                        expValue = expTable[expIndex];
-                    }
-                    
-                    this.encounterExp += expValue*multiplier;
+                    this.encounterExp += this.getExpForCreatureLvl(creatureLevel)*multiplier;
                 },
                 mergeSameCreature: function(creatureObject, index){
                     var sameCreature = this.addedCreatures.filter(creature => creature != creatureObject && creature.data.id == creatureObject.data.id && creature.isWeak == creatureObject.isWeak && creature.isElite == creatureObject.isElite)[0];
@@ -848,20 +1036,19 @@
                     if(partySize == null){
                         partySize = window.localStorage.partySize;
                     }
-                    if(partyLevel >= 1 && partyLevel <= 20){
-                        this.partyFilters.partyLevelFilter = partyLevel;
+                    if(!isNaN(partyLevel) && partyLevel >= 1 && partyLevel <= 20){
+                        this.partyFilters.partyLevelFilter = parseInt(partyLevel);
+                        this.filters.levelMinFilter = this.partyFilters.partyLevelFilter -2;
+                        this.filters.levelMaxFilter = this.partyFilters.partyLevelFilter +2;
                     }
-                    else{
-                        this.setPartyLevel(this.partyFilters.partyLevelFilter);
-                    }
+
                     if(partySize >= 1 && partySize <= 10){
                         this.partyFilters.partySizeFilter = partySize;
                     }
                     else{
                         this.setPartySize(this.partyFilters.partySizeFilter);
                     }
-                    /*if(window.localStorage.filters)
-                        this.filters = JSON.parse(window.localStorage.filters);*/
+
                     if(window.localStorage.addedCreatures)
                         this.addedCreatures = JSON.parse(window.localStorage.addedCreatures);
                     if(window.localStorage.customCreatures)

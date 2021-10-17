@@ -710,10 +710,8 @@
                         if (this.filters.levelMaxFilter != defaultFilters.levelMaxFilter && this.getMaxLevelFromStr(item.level) > this.getMaxLevelFromStr(this.filters.levelMaxFilter)) {
                             isInTheList = false;
                         }
-                        if(this.filters.nameFilter !== ""){
-                            if(!item.name.toLowerCase().includes(this.filters.nameFilter.toLowerCase())){
+                        if(this.filters.nameFilter !== "" && !item.name.toLowerCase().includes(this.filters.nameFilter.toLowerCase())){
                                 isInTheList = false;
-                            }
                         }
 
                         if (this.rarityFilter.length > 0 && !this.rarityFilter.find((el) => {return el === item.rarity.name.toLowerCase();})) {
