@@ -4,7 +4,7 @@
 // {"id":$2, "category":"$1", "link":"https://2e.aonprd.com/$1.aspx?ID=$2","name":"$3","family":"$4","level":$5,"alignment":"$6","type":"$7","size":"$8"},\n
 
 
-var creatureList = [
+var creatureList2 = [
     //DO NOT MODIFY BEFORE THIS
     { "id": 799, "category": "Monsters", "link": "https://2e.aonprd.com/Monsters.aspx?ID=799", "name": "Aapoph Serpentfolk", "family": "Serpentfolk", "level": 3, "alignment": "Chaotic Evil", "type": "Humanoid", "size": "Medium" },
     { "id": 333, "category": "Monsters", "link": "https://2e.aonprd.com/Monsters.aspx?ID=333", "name": "Aasimar", "family": "Planar Scion", "level": 5, "alignment": "Neutral Good", "type": "Humanoid", "size": "Medium" },
