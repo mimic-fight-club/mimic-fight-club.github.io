@@ -7,17 +7,17 @@ Vue.component('item-list-item', {
                 <button type="button" class="btn btn-success btn-sm status-button" v-on:click="$emit('add-normal', item, $event)"><i class="bi bi-shield"></i></button>
             </div >
         </td >
-        <td><a :href="item.link" @click.prevent.exact="$emit('open-link', item.link)" v-on:click.ctrl.exact="$emit('add-filter', [item.name, 'name'])">{{ item.name }}</a></td >
-        <td><span v-on:click.ctrl.exact="$emit('add-filter', [item.level, 'level'])">{{ item.level }}</span></td>
+        <td><a :href="item.link" @click.prevent="$emit('open-link', item.link)">{{ item.name }}</a></td >
+        <td>{{ item.level }}</td>
         <td>
-            <a v-if="item.rarity.link !== ''" :href="getAoNLink(item.rarity)" @click.prevent.exact="$emit('open-link', getAoNLink(item.rarity))" v-on:click.ctrl.exact="$emit('add-filter', [item.rarity.name, 'rarity'])">{{ item.rarity.name }}</a>
+            <a v-if="item.rarity.link !== ''" :href="getAoNLink(item.rarity)" @click.prevent="$emit('open-link', getAoNLink(item.rarity))">{{ item.rarity.name }}</a>
             <template v-else>
                 {{item.rarity.name}}
             </template>
         </td>
         <td>
             <span v-for="(trait, index) in item.traits">  
-                <a v-if="trait.link !== ''" :href="getAoNLink(trait)" @click.prevent.exact="$emit('open-link', getAoNLink(trait))" v-on:click.ctrl.exact="$emit('add-filter', [trait.name, 'trait'])">{{ trait.name }}</a>
+                <a v-if="trait.link !== ''" :href="getAoNLink(trait)" @click.prevent="$emit('open-link', getAoNLink(trait))">{{ trait.name }}</a>
                 <template v-else>
                     {{trait.name}}
                 </template>
@@ -25,13 +25,13 @@ Vue.component('item-list-item', {
             </span>
         </td>
         <td>
-            <a v-if="item.category.link !== ''" :href="getAoNLink(item.category)" @click.prevent.exact="$emit('open-link', getAoNLink(item.category))" v-on:click.ctrl.exact="$emit('add-filter', [item.category.name, 'category'])">{{ item.category.name }}</a>
+            <a v-if="item.category.link !== ''" :href="getAoNLink(item.category)" @click.prevent="$emit('open-link', getAoNLink(item.category))">{{ item.category.name }}</a>
             <template v-else>
                 {{item.category.name}}
             </template>
         </td>
         <td>
-            <a v-if="item.subcategory.link !== ''" :href="getAoNLink(item.subcategory)" @click.prevent.exact="$emit('open-link', getAoNLink(item.subcategory))" v-on:click.ctrl.exact="$emit('add-filter', [item.subcategory.name, 'subcategory'])">{{ item.subcategory.name }}</a>
+            <a v-if="item.subcategory.link !== ''" :href="getAoNLink(item.subcategory)" @click.prevent="$emit('open-link', getAoNLink(item.subcategory))">{{ item.subcategory.name }}</a>
             <template v-else>
                 {{item.subcategory.name}}
             </template>
@@ -42,7 +42,7 @@ Vue.component('item-list-item', {
     `,
     methods: {        
         getAoNLink(subItem){
-            return subItem.link;
+            return "https://2e.aonprd.com/" + subItem.link;
         }
     }
 });
