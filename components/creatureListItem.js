@@ -1,48 +1,42 @@
-Vue.component('item-list-item', {
-    props:['item'],
+Vue.component('creature-list-item', {
+    props:['creature'],
     template: `
     <tr>
         <td>
             <div class="btn-group" role="group">
-                <button type="button" class="btn btn-success btn-sm status-button" v-on:click="$emit('add-normal', item, $event)"><i class="bi bi-shield"></i></button>
+                <button type="button" class="btn btn-success status-button" v-on:click="$emit('add-weak', creature)"><i class="bi bi-shield-slash"></i></button>
+                <button type="button" class="btn btn-success btn-sm status-button" v-on:click="$emit('add-normal', creature, $event)"><i class="bi bi-shield"></i></button>
+                <button type="button" class="btn btn-success status-button" v-on:click="$emit('add-elite', creature)"><i class="bi bi-shield-plus"></i></button>
             </div >
         </td >
-        <td><a :href="item.link" @click.prevent.exact="$emit('open-link', item.link)" v-on:click.ctrl.exact="$emit('add-filter', [item.name, 'name'])">{{ item.name }}</a></td >
-        <td><span v-on:click.ctrl.exact="$emit('add-filter', [item.level, 'level'])">{{ item.level }}</span></td>
+        <td><a :href="creature.link" @click.prevent.exact="$emit('open-link', creature.link)" v-on:click.ctrl.exact="$emit('add-filter', [creature.name, 'name'])">{{ creature.name }}</a></td >
+        <td><span v-on:click.ctrl.exact="$emit('add-filter', [creature.level, 'level'])">{{ creature.level }}</span></td>
         <td>
-            <a v-if="item.rarity.link !== ''" :href="getAoNLink(item.rarity)" @click.prevent.exact="$emit('open-link', getAoNLink(item.rarity))" v-on:click.ctrl.exact="$emit('add-filter', [item.rarity.name, 'rarity'])">{{ item.rarity.name }}</a>
+            <a v-if="creature.family.link !== ''" :href="creature.family.link" @click.prevent.exact="$emit('open-link', creature.family.link)" v-on:click.ctrl.exact="$emit('add-filter', [creature.family.name, 'family'])">{{ creature.family.name }}</a>
             <template v-else>
-                {{item.rarity.name}}
+                {{creature.family.name}}
             </template>
         </td>
+        <td><span v-on:click.ctrl.exact="$emit('add-filter', [creature.alignment, 'alignment'])">{{ creature.alignment }}</span></td>
         <td>
-            <span v-for="(trait, index) in item.traits">  
-                <a v-if="trait.link !== ''" :href="getAoNLink(trait)" @click.prevent.exact="$emit('open-link', getAoNLink(trait))" v-on:click.ctrl.exact="$emit('add-filter', [trait.name, 'trait'])">{{ trait.name }}</a>
+            <span v-for="(type, index) in creature.types">  
+                <a v-if="type.link !== ''" :href="type.link" @click.prevent.exact="$emit('open-link', type.link)" v-on:click.ctrl.exact="$emit('add-filter', [type.name, 'type'])">{{ type.name }}</a>
+                <template v-else>
+                    {{type.name}}
+                </template>
+                <span v-if="index < creature.types.length -1"></span>
+            </span>
+        </td>
+        <td><span v-on:click.ctrl.exact="$emit('add-filter', [creature.size, 'size'])">{{ creature.size }}</span></td>
+        <td>
+            <span v-for="(trait, index) in creature.traits">  
+                <a v-if="trait.link !== ''" :href="trait.link" @click.prevent.exact="$emit('open-link', trait.link)" v-on:click.ctrl.exact="$emit('add-filter', [trait.name, 'trait'])">{{ trait.name }}</a>
                 <template v-else>
                     {{trait.name}}
                 </template>
-                <span v-if="index < item.traits.length -1"></span>
+                <span v-if="index < creature.traits.length -1"></span>
             </span>
         </td>
-        <td>
-            <a v-if="item.category.link !== ''" :href="getAoNLink(item.category)" @click.prevent.exact="$emit('open-link', getAoNLink(item.category))" v-on:click.ctrl.exact="$emit('add-filter', [item.category.name, 'category'])">{{ item.category.name }}</a>
-            <template v-else>
-                {{item.category.name}}
-            </template>
-        </td>
-        <td>
-            <a v-if="item.subcategory.link !== ''" :href="getAoNLink(item.subcategory)" @click.prevent.exact="$emit('open-link', getAoNLink(item.subcategory))" v-on:click.ctrl.exact="$emit('add-filter', [item.subcategory.name, 'subcategory'])">{{ item.subcategory.name }}</a>
-            <template v-else>
-                {{item.subcategory.name}}
-            </template>
-        </td>
-        <td>{{ item.bulk }}</td>
-        <td>{{ item.price }}</td>
     </tr>
-    `,
-    methods: {        
-        getAoNLink(subItem){
-            return subItem.link;
-        }
-    }
+    `
 });
