@@ -996,13 +996,25 @@
                     this.sizes.map((el) => el.selected = false);
                     this.traits.map((el) => el.selected = false);
                     
-                    this.filters.levelMinFilter = this.partyFilters.partyLevelFilter -2;
-                    this.filters.levelMaxFilter = this.partyFilters.partyLevelFilter +2;
+                    this.setMinLevelFilter();
+                    this.setMaxLevelFilter();                    
 
                     this.$nextTick(() => {
                         this.isAutomaticFilterEnabled = true;
                     });
                     this.filterCreatures();
+                },
+                setMaxLevelFilter: function(){
+                    this.filters.levelMaxFilter = this.partyFilters.partyLevelFilter +2;
+                    if(this.filters.levelMinFilter > 25){
+                        this.filters.levelMinFilter = 25;
+                    }
+                },
+                setMinLevelFilter: function(level){
+                    this.filters.levelMinFilter = this.partyFilters.partyLevelFilter -2;
+                    if(this.filters.levelMinFilter < -1){
+                        this.filters.levelMinFilter = -1;
+                    }
                 },
                 resetEncounter: function(event){
                     this.addedCreatures = [];
@@ -1112,11 +1124,18 @@
                     if(partySize == null){
                         partySize = window.localStorage.partySize;
                     }
-                    if(!isNaN(partyLevel) && partyLevel >= 1 && partyLevel <= 20){
-                        this.partyFilters.partyLevelFilter = parseInt(partyLevel);
-                        this.filters.levelMinFilter = this.partyFilters.partyLevelFilter -2;
-                        this.filters.levelMaxFilter = this.partyFilters.partyLevelFilter +2;
+                    if(isNaN(partyLevel)){
+                        partyLevel = "1";
                     }
+                    this.partyFilters.partyLevelFilter = parseInt(partyLevel);
+                    if(this.partyFilters.partyLevelFilter < 0){
+                        this.partyFilters.partyLevelFilter = 0;
+                    }
+                    if(this.partyFilters.partyLevelFilter > 20){
+                        this.partyFilters.partyLevelFilter = 20;
+                    }
+                    this.setMinLevelFilter();
+                    this.setMaxLevelFilter();
 
                     if(partySize >= 1 && partySize <= 10){
                         this.partyFilters.partySizeFilter = partySize;

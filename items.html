@@ -1264,8 +1264,14 @@
                     }
                     this.setTotalValueGoalForPartySize();
                     
-                    this.filters.levelMinFilter = '' + (nbPartyLevel-1);
-                    this.filters.levelMaxFilter = '' + (nbPartyLevel+1);
+                    this.filters.levelMinFilter = "" + (nbPartyLevel-1);
+                    if(nbPartyLevel <= 1){
+                        this.filters.levelMinFilter = "—";
+                    }
+                    this.filters.levelMaxFilter = "" + (nbPartyLevel+1);
+                    if(nbPartyLevel >= 20){
+                        this.filters.levelMaxFilter = "20";
+                    }
                 },
                 setTotalValueGoalForPartySize: function(){
                     var totalValueGoalForPartySizeInGold = this.totalValueGoal[this.partyFilters.partyLevelFilter] + this.currencyPerAdditionalPCByLevel[this.partyFilters.partyLevelFilter]*(this.partyFilters.partySizeFilter-4);
