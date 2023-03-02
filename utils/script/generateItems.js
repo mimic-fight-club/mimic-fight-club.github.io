@@ -77,7 +77,7 @@ for(let item of items){
     }
     
     let convertedItem = {
-        id: item._id+"-"+item._source.name,
+        id: item._id.split("-")[1]+"-"+item._source.name,
         name: item._source.name, 
         link: "https://2e.aonprd.com" + item._source.url, 
         source: extractLinkName(source), 

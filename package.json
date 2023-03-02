@@ -4,6 +4,7 @@
     "node-fetch": "^3.3.0"
   },
   "scripts":{
-    "generateItems" : "node utils/script/generateItems.js"
+    "generateItems" : "node utils/script/generateItems.js",
+    "generateMonsters" : "node utils/script/generateMonsters.js"
   }
 }
