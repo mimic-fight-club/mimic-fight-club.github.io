@@ -117,7 +117,7 @@ let day = leftPad(date.getUTCDate(), "0", 2);
 let month = leftPad(date.getUTCMonth(), "0", 2);
 let year = date.getUTCFullYear();
 
-fs.writeFile(`itemTable-${year}-${month}-${day}.js`, `let itemList = [ ${JSON.stringify(convertedItems)} ];`, 'utf8', function (err) {
+fs.writeFile(`itemTable-${year}-${month}-${day}.js`, `var itemList = ${JSON.stringify(convertedItems)};`, 'utf8', function (err) {
     if (err) {
         console.log("An error occured while writing JSON Object to File.");
         return console.log(err);

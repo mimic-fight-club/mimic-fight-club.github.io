@@ -68,9 +68,9 @@ for(let monster of monsters){
         ? [{"link": "https://2e.aonprd.com/", "name": "—"}]
         : extractLinkNames(monster._source.trait_markdown);
 
-    let family = (!monster._source.monster_family_markdown || monster._source.monster_family_markdown == "")
+    let family = (!monster._source.creature_family_markdown || monster._source.creature_family_markdown == "")
         ? {"link": "https://2e.aonprd.com/", "name": "—"}
-        : extractLinkName(monster._source.monster_family_markdown);
+        : extractLinkName(monster._source.creature_family_markdown);
 
     let pfs = monster._source.pfs ?? "—";
 
@@ -113,6 +113,17 @@ for(let monster of monsters){
     stats.log("alignment", monster._source.alignment);
     stats.log("size", monster._source.size[0]);
     stats.log("family", family.name);
+    stats.logLevelStats("Will Save", level, monster._source.will_save);
+    stats.logLevelStats("Reflex Save", level, monster._source.reflex_save);
+    stats.logLevelStats("Fortitude Save", level, monster._source.fortitude_save);
+    stats.logLevelStats("Strength", level, monster._source.strength);
+    stats.logLevelStats("Constitution", level, monster._source.constitution);
+    stats.logLevelStats("Dexterity", level, monster._source.dexterity);
+    stats.logLevelStats("Charisma", level, monster._source.charisma);
+    stats.logLevelStats("Intelligence", level, monster._source.intelligence);
+    stats.logLevelStats("Wisdom", level, monster._source.wisdom);
+    stats.logLevelStats("Perception", level, monster._source.perception);
+    stats.logLevelStats("Hp", level, monster._source.hp);
     for(let save of monster._source.weakest_save)
         stats.log("weakest_save", save);
     for(let save of monster._source.strongest_save)
@@ -127,7 +138,7 @@ let day = leftPad(date.getUTCDate(), "0", 2);
 let month = leftPad(date.getUTCMonth(), "0", 2);
 let year = date.getUTCFullYear();
 
-fs.writeFile(`monsterTable-${year}-${month}-${day}.js`, `let monsterList = [ ${JSON.stringify(convertedmonsters)} ];`, 'utf8', function (err) {
+fs.writeFile(`monsterTable-${year}-${month}-${day}.js`, `var creatureList = ${JSON.stringify(convertedmonsters)};`, 'utf8', function (err) {
     if (err) {
         console.log("An error occured while writing JSON Object to File.");
         return console.log(err);
@@ -143,4 +154,22 @@ fs.writeFile(`scrapperStats/monsters-${year}-${month}-${day}.json`, JSON.stringi
     }
  
     console.log(`Monsters stats have been saved in scrapperStats/monsters-${year}-${month}-${day}.json`);
+});
+
+let prettyStats = "";
+prettyStats += `Attribute, Lvl, Sum, Avg, Count, StdDev\n`;
+for(let k in stats.computed){
+    for(let l in stats.computed[k]){
+        let row = stats.computed[k][l];
+        prettyStats += `${k}, ${l}, ${row.sum}, ${row.avg}, ${row.count}, ${row.stddev}\n`;
+    }
+}
+
+fs.writeFile(`scrapperStats/monsters-computed-${year}-${month}-${day}.json`, prettyStats, 'utf8', function (err) {
+    if (err) {
+        console.log("An error occured while writing JSON Object to File.");
+        return console.log(err);
+    }
+ 
+    console.log(`Monsters stats have been saved in scrapperStats/monsters-computed-${year}-${month}-${day}.json`);
 });
