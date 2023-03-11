@@ -308,7 +308,7 @@
                     </div>
                     <div class="row">
                         <div class="col-auto">
-                            <span>AWARDED XP PER PLAYER: {{encounterExp}} XP</span>
+                            <span>AWARDED XP PER PLAYER: {{encounterExpFourMan}} XP</span>
                         </div>
                     </div>
                     <div class="table-responsive">
@@ -569,6 +569,7 @@
                 partySize: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
                 partyLevel: [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20],
                 encounterExp: 0,
+                encounterExpFourMan: 0,
                 difficultyStyle: "font-weight: bold;",
                 encounters: [],
                 encounterCounter: 0,
@@ -1047,6 +1048,7 @@
                     this.addedCreatures.forEach(creature => {
                         this.adjustEncounterExpForCreatureLvl(getCreatureLevel(creature), creature.amount);
                     }); 
+                    this.encounterExpFourMan = Math.floor((4 / this.partyFilters.partySizeFilter) * this.encounterExp);
                 },
                 saveCreatures: function(){
                     window.localStorage.addedCreatures = JSON.stringify(this.addedCreatures);
