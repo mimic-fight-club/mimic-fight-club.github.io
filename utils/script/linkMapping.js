@@ -43,6 +43,9 @@ export function getCategoryLink(category) {
         case "Relics": return "https://2e.aonprd.com/Equipment.aspx?Category=50";
         case "Siege Weapons": return "https://2e.aonprd.com/SiegeWeapons.aspx";
         case "Vehicles": return "https://2e.aonprd.com/Vehicles.aspx";
+        case "Companion Items": return "https://2e.aonprd.com/Equipment.aspx?Category=43";
+        case "Censer": return "https://2e.aonprd.com/Equipment.aspx?Category=110";
+        case "Figurehead": return "https://2e.aonprd.com/Equipment.aspx?Category=111";
         default: console.error(`UNKNOWN CATEGORY: ${category}\n cannot provide link in getCategoryLink`); return "";
     }
 }
@@ -118,6 +121,8 @@ export function getSubcategoryLink(subcategory) {
         case "—": return "https://2e.aonprd.com/Equipment.aspx";
         case "Vision Assistance": return "https://2e.aonprd.com/Equipment.aspx?Category=72&Subcategory=100";
         case "Weapon Property Runes": return "https://2e.aonprd.com/Equipment.aspx?Category=23&Subcategory=27";
+        case "The Deck of Destiny": return "https://2e.aonprd.com/Equipment.aspx?Category=45&Subcategory=108";
+        case "Bottled Breath": return "https://2e.aonprd.com/Equipment.aspx?Category=15&Subcategory=109";
         default: console.error(`UNKNOWN SUBCATEGORY: ${subcategory}\n cannot provide link in getSubcategoryLink`); return "";
     }
 }

@@ -101,7 +101,7 @@ for(let monster of monsters){
         "traits": traits, 
         "level": level, 
         "adventureLabel": pfs, 
-        "alignment": monster._source.alignment 
+        "alignment": monster._source.alignment ?? "No Alignment"
     };
 
     convertedmonsters.push(convertedmonster);
@@ -124,6 +124,7 @@ for(let monster of monsters){
     stats.logLevelStats("Wisdom", level, monster._source.wisdom);
     stats.logLevelStats("Perception", level, monster._source.perception);
     stats.logLevelStats("Hp", level, monster._source.hp);
+    stats.logLevelStats("AC", level, monster._source.ac);
     for(let save of monster._source.weakest_save)
         stats.log("weakest_save", save);
     for(let save of monster._source.strongest_save)
@@ -157,11 +158,11 @@ fs.writeFile(`scrapperStats/monsters-${year}-${month}-${day}.json`, JSON.stringi
 });
 
 let prettyStats = "";
-prettyStats += `Attribute, Lvl, Sum, Avg, Count, StdDev\n`;
+prettyStats += `Attribute, Lvl, Sum, Avg, Count, StdDev, Min, Max\n`;
 for(let k in stats.computed){
     for(let l in stats.computed[k]){
         let row = stats.computed[k][l];
-        prettyStats += `${k}, ${l}, ${row.sum}, ${row.avg}, ${row.count}, ${row.stddev}\n`;
+        prettyStats += `${k}, ${l}, ${row.sum}, ${row.avg}, ${row.count}, ${row.stddev}, ${row.min}, ${row.max}\n`;
     }
 }
 
