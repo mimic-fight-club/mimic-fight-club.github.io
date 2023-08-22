@@ -504,7 +504,7 @@
             </div>
         </div>
     </div>
-    <script src='./monsterTable-2023-02-06.js'></script>
+    <script src='./monsterTable-2023-07-22.js'></script>
     <script src='./components/creatureListItem.js'></script>
     <script src='./components/multiSelect.js'></script>
     <script>    
@@ -640,7 +640,6 @@
                     if(!this.families.find(lowerCaseMatch(family, "value"))){                        
                         this.families.push({displayName:family, value:family.toLowerCase(), selected: false});
                     }
-                    
                 });
                 this.families.sort(sortString);
                 
@@ -650,8 +649,7 @@
                         if(!this.types.find(lowerCaseMatch(type, "value"))){                        
                             this.types.push({displayName:type, value:type.toLowerCase(), selected: false});
                         }
-                    });
-                    
+                    });    
                 });
                 this.types.sort(sortString);
                 
