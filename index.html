@@ -769,6 +769,7 @@
                 'filters.alignmentFilter': function(){ this.automaticCreatureFilter(); },
                 'filters.sizeFilter': function(){ this.automaticCreatureFilter(); },
                 'filters.traitFilter': function(){ this.automaticCreatureFilter(); },
+                'filters.sourceFilter': function(){ this.automaticCreatureFilter(); },
                 encounters: {
                     handler: function(newEncounters, oldEncounters){
                         window.localStorage.encounters = JSON.stringify(this.encounters);
@@ -817,6 +818,7 @@
                         case 'alignment': filters = this.alignments; break;
                         case 'level': this.updateLevelFilter(filterName); return;
                         case 'size': filters = this.sizes; break;
+                        case 'source': filters = this.sources; break;
                     }      
                     var foundFilter = filters.find((filter) => {
                         return filter.displayName == filterName;
@@ -953,6 +955,9 @@
                             isInTheList = false;
                         };
                         if (this.traitFilter.length > 0 && !this.traitFilter.find((el) => { return creature.traits.find(trait => trait.name.toLowerCase() === el); })) {
+                            isInTheList = false;
+                        };
+                        if (this.sourceFilter.length > 0 && !this.sourceFilter.find((el) => { return el === creature.source.name.toLowerCase(); })) {
                             isInTheList = false;
                         };
                        return isInTheList;
