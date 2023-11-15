@@ -487,6 +487,11 @@
                                                 <option v-for="trait in traits" :value="trait.value">{{trait.displayName}}</option>
                                             </select>
                                         </td>
+                                        <td>
+                                            <select v-model='creature.source' class="form-select">
+                                                <option v-for="source in sources" :value="source.value">{{source.displayName}}</option>
+                                            </select>
+                                        </td>
                                     </tr>
                                     <template v-for="creature in filteredCreatureList">
                                         <creature-list-item :creature="creature"
