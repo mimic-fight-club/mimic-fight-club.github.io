@@ -606,6 +606,11 @@
                         .filter((el) => { return el.selected === true })
                         .map((el) => { return el.value });
                 },
+                sourceFilter: function () {
+                    return this.sources
+                        .filter((el) => { return el.selected === true })
+                        .map((el) => { return el.value });
+                },
                 encounterCreatures: function(){
                     return this.addedCreatures;
                 },
