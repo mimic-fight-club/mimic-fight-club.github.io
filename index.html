@@ -565,6 +565,7 @@
                 sizes: [],
                 traits: [],
                 levels: [],
+                sources: [],
                 addedCreatures: [],
                 partySize: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
                 partyLevel: [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20],
@@ -675,6 +676,14 @@
                 });
                 this.traits.sort(sortString);
                 
+                this.creatureList.forEach((creature) => {
+                    let source = creature.source.name;
+                    if(!this.sources.find(lowerCaseMatch(source, "value"))){                        
+                        this.sources.push({displayName:source, value:source.toLowerCase(), selected: false});
+                    }
+                });
+                this.sources.sort(sortString);
+
                 this.creatureList.forEach((creature) => {
                     if(!this.levels.includes(creature.level)){                        
                         this.levels.push(creature.level);

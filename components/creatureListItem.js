@@ -37,6 +37,12 @@ Vue.component('creature-list-item', {
                 <span v-if="index < creature.traits.length -1"></span>
             </span>
         </td>
+        <td>
+            <a v-if="creature.source.link !== ''" :href="creature.source.link" @click.prevent.exact="$emit('open-link', creature.source.link)" v-on:click.ctrl.exact="$emit('add-filter', [creature.source.name, 'source'])">{{ creature.source.name }}</a>
+            <template v-else>
+                {{creature.source.name}}
+            </template>
+        </td>
     </tr>
     `
 });
