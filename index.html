@@ -413,7 +413,12 @@
                             <label for="traitFilter" class="form-label">Traits</label>
                             <multi-select :options="traits" @selected="multiSelectToggle(traits, $event)"
                                 @closed="closeFilterMultiSelect(traits)" name="traitFilter"></multi-select>
-                        </div>                    
+                        </div>
+                        <div class="order-2 col-4 col-sm">
+                            <label for="sourceFilter" class="form-label">Sources</label>
+                            <multi-select :options="sources" @selected="multiSelectToggle(sources, $event)"
+                                @closed="closeFilterMultiSelect(sources)" name="sourceFilter"></multi-select>
+                        </div>                         
                         <div class="order-1 order-sm-2 col-4 col-sm align-self-end">
                             <button type="button" class="btn btn-primary w-100" v-on:click="resetFilters">Reset filters</button>
                         </div>   
@@ -434,6 +439,7 @@
                                         <th scope="col">Types</th>
                                         <th scope="col">Size</th>
                                         <th scope="col">Traits</th>
+                                        <th scope="col">Source</th>
                                     </tr>
                                 </thead>
                                 <tbody>
