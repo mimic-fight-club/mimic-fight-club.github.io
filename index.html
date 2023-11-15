@@ -487,11 +487,7 @@
                                                 <option v-for="trait in traits" :value="trait.value">{{trait.displayName}}</option>
                                             </select>
                                         </td>
-                                        <td>
-                                            <select v-model='creature.source' class="form-select">
-                                                <option v-for="source in sources" :value="source.value">{{source.displayName}}</option>
-                                            </select>
-                                        </td>
+                                        <td><input type="text" v-model="creature.source" class="form-control"></td>
                                     </tr>
                                     <template v-for="creature in filteredCreatureList">
                                         <creature-list-item :creature="creature"
@@ -1024,6 +1020,7 @@
                     this.types.map((el) => el.selected = false);
                     this.sizes.map((el) => el.selected = false);
                     this.traits.map((el) => el.selected = false);
+                    this.sources.map((el) => el.selected = false);
                     
                     this.setMinLevelFilter();
                     this.setMaxLevelFilter();                    
