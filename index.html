@@ -114,9 +114,6 @@
             padding: 0 5px;
             cursor: pointer;
         }
-        #resize-handle {
-            background-image: url(/assets/resize-bottom-rightwhite.svg);
-        }
         [v-cloak] {
             display: none;
         }
@@ -204,7 +201,7 @@
     <div v-cloak id="app">
         <div v-if="activeLink !== false" id="external-link-window" class="bg-dark">
             <div class="d-flex flex-row-reverse">
-                <i class="icon-big bi bi-caret-up" style="rotate:45deg;"></i>
+                <i class="icon-big bi bi-caret-up" id="resize-handle" style="rotate:45deg;"></i>
                 <i class="icon-big bi bi-x-circle" @click="closeLink"></i>
                 <i @click.prevent="openLinkInPopup(activeLink, $event)" class="icon-big bi bi-box-arrow-up-right"></i>
             </div>
@@ -560,6 +557,40 @@
             {id: 4, displayName: "Extreme", exp: 160, isActive: false}
             ];
         }
+        
+        class Resizehandler {
+            constructor(targetDivID, pullTabID) {
+                var d = document;
+                var pullTab = d.getElementById(pullTabID);
+                this.target = d.querySelector(targetDivID);
+        
+                this.ht = 600; this.wd = 520;
+                this.x = 0; this.y = 0;
+                this.dx = 0; this.dy = 0;
+        
+                var resizeFn = this.resize.bind(this);
+                pullTab.addEventListener("mousedown", (evt) => {
+                    this.x = evt.screenX;
+                    this.y = evt.screenY;
+                    d.body.addEventListener("mousemove", resizeFn);
+                    d.body.addEventListener("mouseup", () => {
+                        d.body.removeEventListener("mousemove", resizeFn);
+                    });
+                });
+            }
+        
+            resize(evt) {
+                this.dx = evt.screenX - this.x;
+                this.dy = evt.screenY - this.y;
+                this.x = evt.screenX;
+                this.y = evt.screenY;
+                this.wd += this.dx;
+                this.ht -= this.dy;
+                this.target.style.width = this.wd + "px";
+                this.target.style.height = this.ht + "px";
+            };
+        };
+        new Resizehandler("#external-link-window", "resize-handle");
         
         var app = new Vue({
             el: '#app',
