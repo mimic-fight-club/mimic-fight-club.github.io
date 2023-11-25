@@ -114,6 +114,9 @@
             padding: 0 5px;
             cursor: pointer;
         }
+        #resize-handle {
+            background-image: url(/assets/resize-bottom-rightwhite.svg);
+        }
         [v-cloak] {
             display: none;
         }
@@ -201,7 +204,8 @@
     <div v-cloak id="app">
         <div v-if="activeLink !== false" id="external-link-window" class="bg-dark">
             <div class="d-flex flex-row-reverse">
-                <i class="icon-big bi bi-x-circle" @click="closeLink" style="margin-right:12px;"></i>
+                <i class="icon-big bi bi-caret-up" style="rotate:45deg;"></i>
+                <i class="icon-big bi bi-x-circle" @click="closeLink"></i>
                 <i @click.prevent="openLinkInPopup(activeLink, $event)" class="icon-big bi bi-box-arrow-up-right"></i>
             </div>
             <iframe align="middle" :src="activeLink" frameborder="0"></iframe>
