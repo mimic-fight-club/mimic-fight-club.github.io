@@ -413,7 +413,12 @@
                             <label for="traitFilter" class="form-label">Traits</label>
                             <multi-select :options="traits" @selected="multiSelectToggle(traits, $event)"
                                 @closed="closeFilterMultiSelect(traits)" name="traitFilter"></multi-select>
-                        </div>                    
+                        </div>
+                        <div class="order-2 col-4 col-sm">
+                            <label for="sourceFilter" class="form-label">Sources</label>
+                            <multi-select :options="sources" @selected="multiSelectToggle(sources, $event)"
+                                @closed="closeFilterMultiSelect(sources)" name="sourceFilter"></multi-select>
+                        </div>                         
                         <div class="order-1 order-sm-2 col-4 col-sm align-self-end">
                             <button type="button" class="btn btn-primary w-100" v-on:click="resetFilters">Reset filters</button>
                         </div>   
@@ -434,6 +439,7 @@
                                         <th scope="col">Types</th>
                                         <th scope="col">Size</th>
                                         <th scope="col">Traits</th>
+                                        <th scope="col">Source</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -481,6 +487,7 @@
                                                 <option v-for="trait in traits" :value="trait.value">{{trait.displayName}}</option>
                                             </select>
                                         </td>
+                                        <td><input type="text" v-model="creature.source" class="form-control"></td>
                                     </tr>
                                     <template v-for="creature in filteredCreatureList">
                                         <creature-list-item :creature="creature"
@@ -565,6 +572,7 @@
                 sizes: [],
                 traits: [],
                 levels: [],
+                sources: [],
                 addedCreatures: [],
                 partySize: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
                 partyLevel: [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20],
@@ -603,6 +611,11 @@
                 },
                 typeFilter: function () {
                     return this.types
+                        .filter((el) => { return el.selected === true })
+                        .map((el) => { return el.value });
+                },
+                sourceFilter: function () {
+                    return this.sources
                         .filter((el) => { return el.selected === true })
                         .map((el) => { return el.value });
                 },
@@ -670,6 +683,14 @@
                 });
                 this.traits.sort(sortString);
                 
+                this.creatureList.forEach((creature) => {
+                    let source = creature.source.name;
+                    if(!this.sources.find(lowerCaseMatch(source, "value"))){                        
+                        this.sources.push({displayName:source, value:source.toLowerCase(), selected: false});
+                    }
+                });
+                this.sources.sort(sortString);
+
                 this.creatureList.forEach((creature) => {
                     if(!this.levels.includes(creature.level)){                        
                         this.levels.push(creature.level);
@@ -744,6 +765,7 @@
                 'filters.alignmentFilter': function(){ this.automaticCreatureFilter(); },
                 'filters.sizeFilter': function(){ this.automaticCreatureFilter(); },
                 'filters.traitFilter': function(){ this.automaticCreatureFilter(); },
+                'filters.sourceFilter': function(){ this.automaticCreatureFilter(); },
                 encounters: {
                     handler: function(newEncounters, oldEncounters){
                         window.localStorage.encounters = JSON.stringify(this.encounters);
@@ -792,6 +814,7 @@
                         case 'alignment': filters = this.alignments; break;
                         case 'level': this.updateLevelFilter(filterName); return;
                         case 'size': filters = this.sizes; break;
+                        case 'source': filters = this.sources; break;
                     }      
                     var foundFilter = filters.find((filter) => {
                         return filter.displayName == filterName;
@@ -930,6 +953,9 @@
                         if (this.traitFilter.length > 0 && !this.traitFilter.find((el) => { return creature.traits.find(trait => trait.name.toLowerCase() === el); })) {
                             isInTheList = false;
                         };
+                        if (this.sourceFilter.length > 0 && !this.sourceFilter.find((el) => { return el === creature.source.name.toLowerCase(); })) {
+                            isInTheList = false;
+                        };
                        return isInTheList;
                     });
                     this.filteredCreatureList = creatures.sort((a, b) => {
@@ -965,7 +991,8 @@
                         "alignment": this.filters.alignmentFilter, 
                         "type": this.filters.typeFilter, 
                         "size": this.filters.sizeFilter,
-                        "traits": this.filters.traitFilter
+                        "traits": this.filters.traitFilter,
+                        "sources": this.filters.sourceFilter,
                     });
                 },
                 openLinkInPopup(link, event){
@@ -993,6 +1020,7 @@
                     this.types.map((el) => el.selected = false);
                     this.sizes.map((el) => el.selected = false);
                     this.traits.map((el) => el.selected = false);
+                    this.sources.map((el) => el.selected = false);
                     
                     this.setMinLevelFilter();
                     this.setMaxLevelFilter();                    
