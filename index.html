@@ -95,6 +95,7 @@
             position: fixed;
             bottom: 0;
             left: 0;
+            min-width: 520px;
             width: 520px;
             height: 600px;
             max-height:100vh;
@@ -103,9 +104,9 @@
         }
         #external-link-window iframe{
             width: 500px;
-            max-width: 100%;
+            min-width: calc(100% - 20px);
             height:90%;
-            margin: 0 auto;
+            margin: 0 10px;
             display: block;
         }
         #external-link-window .icon-big{
@@ -113,6 +114,20 @@
             align-self: sflex-end;
             padding: 0 5px;
             cursor: pointer;
+        }
+        @media only screen and (max-width: 550px) {
+            #resize-handle {
+                visibility:hidden;
+                display: none;
+            }
+            #external-link-window {
+                min-width: none;
+                width: 100%;
+            }
+            #external-link-window iframe{
+                width: calc(100% - 20px);
+                min-width: none;
+            }
         }
         [v-cloak] {
             display: none;
@@ -590,7 +605,6 @@
                 this.target.style.height = this.ht + "px";
             };
         };
-        new Resizehandler("#external-link-window", "resize-handle");
         
         var app = new Vue({
             el: '#app',
@@ -1038,6 +1052,8 @@
                 },
                 openLink(link, event){
                     this.activeLink = link;
+                    setTimeout(() => {new Resizehandler("#external-link-window", "resize-handle");}, 1);
+                    
                 },
                 getCreatureLink(creature){                    
                     if(creature.isWeak)
