@@ -19,16 +19,6 @@ Vue.component('creature-list-item', {
         </td>
         <td><span v-on:click.ctrl.exact="$emit('add-filter', [creature.alignment, 'alignment'])">{{ creature.alignment }}</span></td>
         <td>
-            <span v-for="(type, index) in creature.types">  
-                <a v-if="type.link !== ''" :href="type.link" @click.prevent.exact="$emit('open-link', type.link)" v-on:click.ctrl.exact="$emit('add-filter', [type.name, 'type'])">{{ type.name }}</a>
-                <template v-else>
-                    {{type.name}}
-                </template>
-                <span v-if="index < creature.types.length -1"></span>
-            </span>
-        </td>
-        <td><span v-on:click.ctrl.exact="$emit('add-filter', [creature.size, 'size'])">{{ creature.size }}</span></td>
-        <td>
             <span v-for="(trait, index) in creature.traits">  
                 <a v-if="trait.link !== ''" :href="trait.link" @click.prevent.exact="$emit('open-link', trait.link)" v-on:click.ctrl.exact="$emit('add-filter', [trait.name, 'trait'])">{{ trait.name }}</a>
                 <template v-else>
@@ -37,6 +27,7 @@ Vue.component('creature-list-item', {
                 <span v-if="index < creature.traits.length -1"></span>
             </span>
         </td>
+        <td><span v-on:click.ctrl.exact="$emit('add-filter', [creature.size, 'size'])">{{ creature.size }}</span></td>
         <td>
             <a v-if="creature.source.link !== ''" :href="creature.source.link" @click.prevent.exact="$emit('open-link', creature.source.link)" v-on:click.ctrl.exact="$emit('add-filter', [creature.source.name, 'source'])">{{ creature.source.name }}</a>
             <template v-else>
