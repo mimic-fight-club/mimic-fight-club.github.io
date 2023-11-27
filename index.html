@@ -416,20 +416,15 @@
                                 name="alignmentsFilter"></multi-select>
                         </div>                    
                         <div class="order-2 col-4 col-sm">
-                            <label for="typeFilter" class="form-label">Type</label>
-                            <multi-select :options="types" @selected="multiSelectToggle(types, $event)"
-                                @closed="closeFilterMultiSelect(types)" name="typesFilter"></multi-select>
-                        </div>                    
+                            <label for="traitFilter" class="form-label">Traits</label>
+                            <multi-select :options="traits" @selected="multiSelectToggle(traits, $event)"
+                                @closed="closeFilterMultiSelect(traits)" name="traitFilter"></multi-select>
+                        </div>                
                         <div class="order-2 col-4 col-sm">
                             <label for="sizeFilter" class="form-label">Size</label>
                             <multi-select :options="sizes" @selected="multiSelectToggle(sizes, $event)"
                                 @closed="closeFilterMultiSelect(sizes)" name="sizesFilter"></multi-select>
                         </div>                    
-                        <div class="order-2 col-4 col-sm">
-                            <label for="traitFilter" class="form-label">Traits</label>
-                            <multi-select :options="traits" @selected="multiSelectToggle(traits, $event)"
-                                @closed="closeFilterMultiSelect(traits)" name="traitFilter"></multi-select>
-                        </div>
                         <div class="order-2 col-4 col-sm">
                             <label for="sourceFilter" class="form-label">Sources</label>
                             <multi-select :options="sources" @selected="multiSelectToggle(sources, $event)"
@@ -452,9 +447,8 @@
                                         <th scope="col">Level</th>
                                         <th scope="col">Family</th>
                                         <th scope="col">Alignment</th>
-                                        <th scope="col">Types</th>
-                                        <th scope="col">Size</th>
                                         <th scope="col">Traits</th>
+                                        <th scope="col">Size</th>
                                         <th scope="col">Source</th>
                                     </tr>
                                 </thead>
@@ -489,18 +483,13 @@
                                             </select>
                                         </td>
                                         <td>
-                                            <select v-model='creature.type' class="form-select">
-                                                <option v-for="type in types" :value="type.value">{{type.displayName}}</option>
+                                            <select v-model='creature.traits' class="form-select">
+                                                <option v-for="trait in traits" :value="trait.value">{{trait.displayName}}</option>
                                             </select>
                                         </td>
                                         <td>
                                             <select v-model='creature.size' class="form-select">
                                                 <option v-for="size in sizes" :value="size.value">{{size.displayName}}</option>
-                                            </select>
-                                        </td>
-                                        <td>
-                                            <select v-model='creature.traits' class="form-select">
-                                                <option v-for="trait in traits" :value="trait.value">{{trait.displayName}}</option>
                                             </select>
                                         </td>
                                         <td><input type="text" v-model="creature.source" class="form-control"></td>
@@ -617,7 +606,6 @@
                 partyFilters: { partySizeFilter: 4, partyLevelFilter: 1},
                 alignments: [],
                 families: [],
-                types: [],
                 sizes: [],
                 traits: [],
                 levels: [],
@@ -655,11 +643,6 @@
                 },
                 traitFilter: function () {
                     return this.traits
-                        .filter((el) => { return el.selected === true })
-                        .map((el) => { return el.value });
-                },
-                typeFilter: function () {
-                    return this.types
                         .filter((el) => { return el.selected === true })
                         .map((el) => { return el.value });
                 },
@@ -704,16 +687,6 @@
                     }
                 });
                 this.families.sort(sortString);
-                
-                this.creatureList.forEach((creature) => {
-                    creature.types.forEach((creatureType) => {
-                        let type = creatureType.name;
-                        if(!this.types.find(lowerCaseMatch(type, "value"))){                        
-                            this.types.push({displayName:type, value:type.toLowerCase(), selected: false});
-                        }
-                    });    
-                });
-                this.types.sort(sortString);
                 
                 this.creatureList.forEach((creature) => {
                     if(!this.sizes.find(lowerCaseMatch(creature.size, "value"))){                        
@@ -810,7 +783,6 @@
                 'filters.levelMinFilter': function(){ this.automaticCreatureFilter(); },
                 'filters.levelMaxFilter': function(){ this.automaticCreatureFilter(); },
                 'filters.familyFilter': function(){ this.automaticCreatureFilter(); },
-                'filters.typeFilter': function(){ this.automaticCreatureFilter(); },
                 'filters.alignmentFilter': function(){ this.automaticCreatureFilter(); },
                 'filters.sizeFilter': function(){ this.automaticCreatureFilter(); },
                 'filters.traitFilter': function(){ this.automaticCreatureFilter(); },
@@ -857,7 +829,6 @@
                     var filters = [];
                     switch(filterType){
                         case 'family': filters = this.families; break;
-                        case 'type': filters = this.types; break;
                         case 'trait': filters = this.traits; break;
                         case 'name': this.updateNameFilter(filterName); return;
                         case 'alignment': filters = this.alignments; break;
@@ -996,9 +967,6 @@
                         if (this.familyFilter.length > 0 && !this.familyFilter.find((el) => { return el === creature.family.name.toLowerCase(); })) {
                             isInTheList = false;
                         };
-                        if (this.typeFilter.length > 0 && !this.typeFilter.find((el) => { return creature.types.find(type => type.name.toLowerCase() === el); })) {
-                            isInTheList = false;
-                        };
                         if (this.traitFilter.length > 0 && !this.traitFilter.find((el) => { return creature.traits.find(trait => trait.name.toLowerCase() === el); })) {
                             isInTheList = false;
                         };
@@ -1038,7 +1006,6 @@
                         "family": this.filters.familyFilter, 
                         "level": level, 
                         "alignment": this.filters.alignmentFilter, 
-                        "type": this.filters.typeFilter, 
                         "size": this.filters.sizeFilter,
                         "traits": this.filters.traitFilter,
                         "sources": this.filters.sourceFilter,
@@ -1068,7 +1035,6 @@
                     this.filters = getDefaultFilters();
                     this.alignments.map((el) => el.selected = false);
                     this.families.map((el) => el.selected = false);
-                    this.types.map((el) => el.selected = false);
                     this.sizes.map((el) => el.selected = false);
                     this.traits.map((el) => el.selected = false);
                     this.sources.map((el) => el.selected = false);
