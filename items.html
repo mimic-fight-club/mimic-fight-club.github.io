@@ -95,6 +95,7 @@
             position: fixed;
             bottom: 0;
             left: 0;
+            min-width: 520px;
             width: 520px;
             height: 600px;
             max-height:100vh;
@@ -103,9 +104,9 @@
         }
         #external-link-window iframe{
             width: 500px;
-            max-width: 100%;
+            min-width: calc(100% - 20px);
             height:90%;
-            margin: 0 auto;
+            margin: 0 10px;
             display: block;
         }
         #external-link-window .icon-big{
@@ -113,6 +114,20 @@
             align-self: sflex-end;
             padding: 0 5px;
             cursor: pointer;
+        }
+        @media only screen and (max-width: 550px) {
+            #resize-handle {
+                visibility:hidden;
+                display: none;
+            }
+            #external-link-window {
+                min-width: none;
+                width: 100%;
+            }
+            #external-link-window iframe{
+                width: calc(100% - 20px);
+                min-width: none;
+            }
         }
         [v-cloak] {
             display: none;
@@ -186,7 +201,8 @@
     <div v-cloak id="app">
         <div v-if="activeLink !== false" id="external-link-window" class="bg-dark">
             <div class="d-flex flex-row-reverse">
-                <i class="icon-big bi bi-x-circle" @click="closeLink" style="margin-right:12px;"></i>
+                <i class="icon-big bi bi-caret-up" id="resize-handle" style="rotate:45deg;"></i>
+                <i class="icon-big bi bi-x-circle" @click="closeLink"></i>
                 <i @click.prevent="openLinkInPopup(activeLink, $event)" class="icon-big bi bi-box-arrow-up-right"></i>
             </div>
             <iframe align="middle" :src="activeLink" frameborder="0"></iframe>
@@ -510,6 +526,39 @@
             return {nameFilter: '', levelMinFilter: 'All', levelMaxFilter: 'All'};
         }     
         
+        class Resizehandler {
+            constructor(targetDivID, pullTabID) {
+                var d = document;
+                var pullTab = d.getElementById(pullTabID);
+                this.target = d.querySelector(targetDivID);
+        
+                this.ht = 600; this.wd = 520;
+                this.x = 0; this.y = 0;
+                this.dx = 0; this.dy = 0;
+        
+                var resizeFn = this.resize.bind(this);
+                pullTab.addEventListener("mousedown", (evt) => {
+                    this.x = evt.screenX;
+                    this.y = evt.screenY;
+                    d.body.addEventListener("mousemove", resizeFn);
+                    d.body.addEventListener("mouseup", () => {
+                        d.body.removeEventListener("mousemove", resizeFn);
+                    });
+                });
+            }
+        
+            resize(evt) {
+                this.dx = evt.screenX - this.x;
+                this.dy = evt.screenY - this.y;
+                this.x = evt.screenX;
+                this.y = evt.screenY;
+                this.wd += this.dx;
+                this.ht -= this.dy;
+                this.target.style.width = this.wd + "px";
+                this.target.style.height = this.ht + "px";
+            };
+        };
+
         var app = new Vue({
             el: '#app',
             data: {
@@ -836,6 +885,7 @@
                 },
                 openLink(link, event){
                     this.activeLink = link;
+                    setTimeout(() => {new Resizehandler("#external-link-window", "resize-handle");}, 1);
                 },
                 getItemLink(item){                    
                     return item.data.link;
