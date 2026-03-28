@@ -186,6 +186,107 @@
             padding-left:2px; 
             padding-right:2px;
         }
+        /* Migration Banner */
+        .migration-banner {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 9500;
+            background-color: #1a5276;
+            color: #eee;
+            padding: 8px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.5);
+        }
+        .migration-banner a {
+            color: #5dade2;
+            text-decoration: underline;
+            margin-left: 4px;
+        }
+        .migration-banner a:hover {
+            color: #85c1e9;
+        }
+        .migration-banner .dismiss-banner {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: #aaa;
+            font-size: 18px;
+            cursor: pointer;
+            padding: 0 4px;
+        }
+        .migration-banner .dismiss-banner:hover {
+            color: #eee;
+        }
+        /* Migration Modal */
+        .migration-modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 10000;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .migration-modal-card {
+            background-color: #333;
+            color: #eee;
+            border: 1px solid #555;
+            border-radius: 8px;
+            padding: 32px;
+            max-width: 480px;
+            width: 90%;
+            text-align: center;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6);
+        }
+        .migration-modal-card h3 {
+            margin-bottom: 16px;
+            color: #fff;
+        }
+        .migration-modal-card p {
+            margin-bottom: 24px;
+            color: #ccc;
+            line-height: 1.5;
+        }
+        .migration-modal-card .btn-primary-migration {
+            background-color: #1a5276;
+            border-color: #1a5276;
+            color: #fff;
+            padding: 10px 24px;
+            border-radius: 4px;
+            font-size: 16px;
+            text-decoration: none;
+            display: inline-block;
+            margin-bottom: 12px;
+        }
+        .migration-modal-card .btn-primary-migration:hover {
+            background-color: #21618c;
+            border-color: #21618c;
+        }
+        .migration-modal-card .btn-dismiss-migration {
+            background: none;
+            border: none;
+            color: #888;
+            font-size: 13px;
+            cursor: pointer;
+            text-decoration: underline;
+        }
+        .migration-modal-card .btn-dismiss-migration:hover {
+            color: #bbb;
+        }
+        body.has-migration-banner {
+            padding-top: 40px;
+        }
     </style>
     <!-- Global site tag (gtag.js) - Google Analytics -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-GNV4ZBVCVM"></script>
@@ -199,6 +300,26 @@
 </head>
 <body class="bg-dark text-light">
     <div v-cloak id="app">
+        <!-- Migration Banner -->
+        <div v-if="showMigrationBanner" class="migration-banner">
+            <span>Mimic Fight Club has moved! Visit the new site at
+                <a href="https://prepnpray.com" target="_blank" rel="noopener">prepnpray.com</a>,
+                Free to use, with more features coming soon.
+            </span>
+        </div>
+
+        <!-- Migration Modal -->
+        <div v-if="showMigrationModal" class="migration-modal-overlay" @click.self="dismissModal">
+            <div class="migration-modal-card">
+                <h3>We've Moved!</h3>
+                <p>Mimic Fight Club is now <strong>Prep N Pray</strong>. All the same features you know are available for free, with more advanced tools coming soon.</p>
+                <div>
+                    <a href="https://prepnpray.com" class="btn-primary-migration" target="_blank" rel="noopener">Check it out</a>
+                </div>
+                <button class="btn-dismiss-migration" @click="dismissModal">Continue to old site</button>
+            </div>
+        </div>
+
         <div v-if="activeLink !== false" id="external-link-window" class="bg-dark">
             <div class="d-flex flex-row-reverse">
                 <i class="icon-big bi bi-x-circle" @click="closeLink" style="margin-right:12px;"></i>
@@ -556,6 +677,8 @@
                 customCreatureId: 0,
                 customCreatures:[],
                 activeLink: false,
+                showMigrationModal: false,
+                showMigrationBanner: false,
                 creatureList: creatureList,
                 filters: getDefaultFilters(),
                 partyFilters: { partySizeFilter: 4, partyLevelFilter: 1},
@@ -628,6 +751,13 @@
                 }
             },
             mounted: function(){
+                // Migration announcement
+                if (!localStorage.getItem('migrationModalDismissed')) {
+                    this.showMigrationModal = true;
+                }
+                this.showMigrationBanner = true;
+                document.body.classList.add('has-migration-banner');
+
                 this.creatureList.forEach((creature) => {
                     if(!this.alignments.find(lowerCaseMatch(creature.alignment, "value"))){                        
                         this.alignments.push({displayName:creature.alignment, value:creature.alignment.toLowerCase(), selected: false});
@@ -763,6 +893,10 @@
                 }
             },
             methods:{
+                dismissModal: function() {
+                    this.showMigrationModal = false;
+                    localStorage.setItem('migrationModalDismissed', 'true');
+                },
                 closeFilterMultiSelect: function(filter){
                     this.filterCreatures();
                     filter.sort((a,b) => {
